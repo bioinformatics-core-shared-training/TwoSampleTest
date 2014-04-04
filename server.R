@@ -47,15 +47,11 @@ shinyServer(function(input, output){
   output$histogram<- reactivePlot(function(){
     
   df <- data()
+  
   datacol1 <- as.numeric(input$dataCol1)
   datacol2 <- as.numeric(input$dataCol2)
   
-  mdf <- melt(df)
-  
-   
-  colnames(df)[datacol1] <- "X"
-  colnames(df)[datacol2] <- "Y"
-
+  mdf <- melt(df[,c(datacol1,datacol2)])
   p <- ggplot(mdf, aes(x = value, fill=variable)) + geom_density(alpha=0.3)
 
   print(p)
@@ -68,14 +64,9 @@ shinyServer(function(input, output){
     datacol1 <- as.numeric(input$dataCol1)
     datacol2 <- as.numeric(input$dataCol2)
     
+   mdf <- melt(df[,c(datacol1,datacol2)])
     
-    
-    colnames(df)[datacol1] <- "X"
-    colnames(df)[datacol2] <- "Y"
-    
-    mdf <- melt(df)
-    
-    p < ggplot(mdf, aes(x = variable,y=value)) + geom_boxplot() + coord_flip()
+    p <- ggplot(mdf, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()
     
     print(p)
 
@@ -94,7 +85,7 @@ shinyServer(function(input, output){
     X <- df[,datacol1]
     Y <- df[,datacol2]
     alternative = input$alternative
-    paired <- as.logical(paired)
+    paired <- as.logical(input$paired)
     
     t.test(X,Y,alternative=alternative,paired=paired)
   })
@@ -103,21 +94,22 @@ shinyServer(function(input, output){
     datacol1 <- as.numeric(input$dataCol1)
     datacol2 <- as.numeric(input$dataCol2)
     
-    summary(data()[,c(datacol1,datacol2])
+    summary(data()[,c(datacol1,datacol2)])
   })
   
-  output$zdist <- reactivePlot(function(){
+  output$tdist <- reactivePlot(function(){
   
-    mu <- as.numeric(input$mu)
-    alternative = input$alternative
-    mu <- as.numeric(input$mu)
-   
     df <- data()
-    datacol <- as.numeric(input$dataCol)
-    degfree <- nrow(df)-1
-    X <- df[,datacol]
-    tstat <- t.test(X,mu=mu,alternative=alternative)$statistic
     
+    X <- df[,datacol1]
+    Y <- df[,datacol2]
+    alternative = input$alternative
+    paired <- as.logical(input$paired)
+    
+    tt <- t.test(X,Y,alternative=alternative,paired=paired)
+
+    tstat <- tt$statistic
+    degfree <- tt$parameter
 
     alternative = input$alternative
     
@@ -130,7 +122,7 @@ shinyServer(function(input, output){
                      colour="black", fill="white") +
       geom_density()
     
-    xlim <- c(min(tstat-0.2,min(df$ts)), max(tstat+0.2, max(df$ts)))
+   xlim <- c(-4,4)
     
     critvals <- c(qt(0.05, degfree),qt(0.95,degfree))
     rect1 <- data.frame(xmin = min(critvals[1],xlim),xmax = critvals[1], ymin=-Inf,ymax=Inf)
@@ -141,7 +133,7 @@ shinyServer(function(input, output){
     "greater" = p + geom_rect(data=rect2,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE),
     "less" =  p + geom_rect(data=rect1,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE)
    )   
-    p <- p + geom_vline(xintercept = tstat,lty=2,col="red") + xlim(xlim)
+    p <- p + geom_vline(xintercept = tstat,lty=2,col="red") + xlim(xlim) + ggtitle(paste("T-distribution with ", degfree, "degrees of freedom"))
     print(p)
   })
   

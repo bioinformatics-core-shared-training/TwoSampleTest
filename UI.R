@@ -1,4 +1,5 @@
 ####shiny::runGitHub("TwoSampleT","markdunning")
+##runApp(".")
 
 library(shiny)
 
@@ -43,7 +44,7 @@ shinyUI(pageWithSidebar(
        #        plotOutput("zdist"),
         #       verbatimTextOutput("ttest")),
       
-      tabPanel("t test",verbatimTextOutput("ttest"))
+      tabPanel("t test",h4("Screen output in R"),plotOutput("tdist"),verbatimTextOutput("ttest")),
       tabPanel("Summary Statistics",
                h4("Screen output in R"),
                verbatimTextOutput("summary")),
