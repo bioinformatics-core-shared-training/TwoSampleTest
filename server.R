@@ -11,8 +11,12 @@ shinyServer(function(input, output){
                     if (is.null(inFile))
                     return(NULL)
                     print(inFile$datapath)
-                    read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
+                    data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
                     #read.csv("GraphPad Course Data/diseaseX.csv")
+                    
+                    if(!input$factors) data <- melt(data)
+                    colnames(data) <- c("variable","value")
+                    data
   })
   
 #  output$plot <- renderPlot({
@@ -48,11 +52,11 @@ shinyServer(function(input, output){
     
   df <- data()
   
-  datacol1 <- as.numeric(input$dataCol1)
-  datacol2 <- as.numeric(input$dataCol2)
+  #datacol1 <- as.numeric(input$dataCol1)
+  #datacol2 <- as.numeric(input$dataCol2)
   
-  mdf <- melt(df[,c(datacol1,datacol2)])
-  p <- ggplot(mdf, aes(x = value, fill=variable)) + geom_density(alpha=0.3)
+  #mdf <- melt(df[,c(datacol1,datacol2)])
+  p <- ggplot(df, aes(x = value, fill=variable)) + geom_density(alpha=0.3)
 
   print(p)
   }
@@ -61,12 +65,12 @@ shinyServer(function(input, output){
   output$boxplot<- reactivePlot(function(){
     
     df <- data()
-    datacol1 <- as.numeric(input$dataCol1)
-    datacol2 <- as.numeric(input$dataCol2)
+    #datacol1 <- as.numeric(input$dataCol1)
+    #datacol2 <- as.numeric(input$dataCol2)
     
-   mdf <- melt(df[,c(datacol1,datacol2)])
+   #mdf <- melt(df[,c(datacol1,datacol2)])
     
-    p <- ggplot(mdf, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()
+    p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()
     
     print(p)
 
@@ -78,35 +82,35 @@ shinyServer(function(input, output){
   
   output$ttest <-renderPrint({
     df <- data()
-    datacol1 <- as.numeric(input$dataCol1)
-    datacol2 <- as.numeric(input$dataCol2)
+    #datacol1 <- as.numeric(input$dataCol1)
+    #datacol2 <- as.numeric(input$dataCol2)
     
     
-    X <- df[,datacol1]
-    Y <- df[,datacol2]
+    #X <- df[,datacol1]
+    #Y <- df[,datacol2]
     alternative = input$alternative
     paired <- as.logical(input$paired)
-    
-    t.test(X,Y,alternative=alternative,paired=paired)
+    var.equal <- as.logical(input$var.equal)    
+    t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
   })
 
   output$summary <- renderPrint({
-    datacol1 <- as.numeric(input$dataCol1)
-    datacol2 <- as.numeric(input$dataCol2)
-    
-    summary(data()[,c(datacol1,datacol2)])
+    df <- data()
+    lapply(split(df$value,df$variable),summary)
   })
   
   output$tdist <- reactivePlot(function(){
   
     df <- data()
+    #datacol1 <- as.numeric(input$dataCol1)
+    #datacol2 <- as.numeric(input$dataCol2)
     
-    X <- df[,datacol1]
-    Y <- df[,datacol2]
+    #X <- df[,datacol1]
+    #Y <- df[,datacol2]
     alternative = input$alternative
     paired <- as.logical(input$paired)
-    
-    tt <- t.test(X,Y,alternative=alternative,paired=paired)
+    var.equal <- as.logical(input$var.equal)    
+    tt <- t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
 
     tstat <- tt$statistic
     degfree <- tt$parameter

@@ -8,6 +8,7 @@ shinyUI(pageWithSidebar(
   headerPanel("Two-sample t-test Example"),
   
   sidebarPanel(
+    h2("Data Import Parameters"),
     fileInput('file1', 'Choose CSV File',
               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
     checkboxInput('header', 'Header', TRUE),
@@ -21,14 +22,14 @@ shinyUI(pageWithSidebar(
                    'Double Quote'='"',
                    'Single Quote'="'"),
                  'Double Quote'),
-    textInput("dataCol1", "Column containing data to test",value=1),
-    textInput("dataCol2", "Column containing data to test",value=2),
-    
+    h2("Analysis Parameters"),
     br(),    
+    checkboxInput('factors', '1st column is a factor?', FALSE),
+    
     br(),
     radioButtons("alternative", "Alternative", c("Two-sided"="two.sided", "Greater" = "greater", "Lower"="less"),"two.sided"),
     checkboxInput('paired', 'Paired Test', FALSE),
-    
+    checkboxInput('var.equal', 'Equal Variances?', FALSE),
     h4("To do"),
     helpText("Try changing the mean height of females,
              Can you determine its effect on the Summary Statistics?")
