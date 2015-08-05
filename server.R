@@ -9,7 +9,16 @@ shinyServer(function(input, output){
   data <- reactive({inFile <- input$file1
   
                     if (is.null(inFile))
-                    return(NULL)
+                    return(structure(list(variable = structure(c(1L, 1L, 1L, 1L, 1L, 1L, 
+                                                                 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 
+                                                                 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+                                                                 2L, 2L), .Label = c("Breed.A", "Breed.B"), class = "factor"), 
+                                          value = c(20.77, 9.08, 9.8, 8.13, 16.54, 11.36, 11.47, 12.1, 
+                                                    14.04, 16.82, 6.32, 17.51, 9.87, 12.41, 7.39, 9.23, 4.06, 
+                                                    8.26, 10.24, 14.64, 15.51, 12.93, 11.5, 16.07, 15.51, 17.66, 
+                                                    11.25, 13.65, 14.28, 13.21, 10.28, 12.41, 9.63, 14.75, 9.81, 
+                                                    13.02, 12.33, 11.9, 8.98, 11.29)), row.names = c(NA, -40L
+                                                    ), .Names = c("variable", "value"), class = "data.frame"))
                     print(inFile$datapath)
                     data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
                     #read.csv("GraphPad Course Data/diseaseX.csv")
