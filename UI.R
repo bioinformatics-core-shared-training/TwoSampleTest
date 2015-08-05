@@ -30,42 +30,44 @@ shinyUI(pageWithSidebar(
     radioButtons("alternative", "Alternative", c("Two-sided"="two.sided", "Greater" = "greater", "Lower"="less"),"two.sided"),
     checkboxInput('paired', 'Paired Test', FALSE),
     checkboxInput('var.equal', 'Equal Variances?', FALSE),
-    h4("To do"),
-    helpText("Try changing the mean height of females,
-             Can you determine its effect on the Summary Statistics?")
-    ),
+    textInput("outfile", "What to call the output R script",value="analysis"),
+  textInput("name", "Your Name",value="Anon."),
+  textInput("title", "What title to use in the report",value="My R Analysis")
+),
   
   mainPanel(
     tabsetPanel(
 #      tabPanel("Plot",plotOutput("plot")),
       tabPanel("The data", dataTableOutput("mytable")),
-      tabPanel("Boxplot",plotOutput("boxplot")),
+      tabPanel("Data Distribution",plotOutput("boxplot"),
+               verbatimTextOutput("summary")
+               ),
       tabPanel("Histogram",plotOutput("histogram")),
       #tabPanel("t test", h4("Screen output in R"),
        #        plotOutput("zdist"),
         #       verbatimTextOutput("ttest")),
       
       tabPanel("t test",h4("Screen output in R"),plotOutput("tdist"),verbatimTextOutput("ttest")),
-      tabPanel("Summary Statistics",
-               h4("Screen output in R"),
-               verbatimTextOutput("summary")),
-      tabPanel("Example  R code",
-               helpText("#Generate some data and place in a dataframe"),
-               helpText("X <- 1:100"),
-               helpText("Y <- 100 + 2*X + rnorm(100, sd=10)"),
-               helpText("mydata <- data.frame(X, Y)"),
+
+      tabPanel("R code",
+               helpText("You will be able to re-run this analysis in R by downloading the R code below"),
+               strong("The input file that you are analysing must be in your R working directory in order for the script to run"),
+               h4("Code Preview"),
+               verbatimTextOutput("thecode"),
+               downloadLink('downloadScript', 'Download R Script'),
                br(),
-               helpText("#Fit regression model"),
-               helpText("model <- lm(Y ~ X, data=mydata)"),
+               downloadLink('downloadMarkdown', 'Download R Markdown'),
                br(),
-               helpText("#Summary statistics for the model"),
-               helpText("summary(model)"),
-               br(),
-               helpText("#Plot the data and add the regression line"),
-               helpText("plot(Y ~ X, data=mydata)"),
-               helpText("abline(model)")
+               #             downloadLink('downloadPDF', 'Download HTML Report')
+               helpText("We recommend RStudio to run the R code and compile reports"),
+               img(src="https://www.rstudio.com/wp-content/uploads/2014/03/blue-125.png"), br(),a("RStudio",href="https://www.rstudio.com/"),br(),
+               helpText("In order to compile the report in RStudio, you will need to install the ggplot2, rmarkdown and knitr packages"),br(),
+               code("install.packages(c('knitr','ggplot2','rmarkdown'))")
+      )
       )
     )
-  )
   
-  ))
+  
+  )
+
+)

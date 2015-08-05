@@ -61,13 +61,28 @@ shinyServer(function(input, output){
     
   df <- data()
   
-  #datacol1 <- as.numeric(input$dataCol1)
-  #datacol2 <- as.numeric(input$dataCol2)
-  
-  #mdf <- melt(df[,c(datacol1,datacol2)])
-  p <- ggplot(df, aes(x = value, fill=variable)) + geom_density(alpha=0.3)
 
-  print(p)
+  
+  p<- ggplot(df, aes(x=value)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+
+                   colour="black",fill="white") + facet_wrap(~variable)
+  
+  p <- p + stat_function(fun=dnorm,
+                         color="red",
+                         arg=list(mean=mean(df$value), 
+                                  sd=sd(df$value)))
+  
+  if(input$paired){
+    newDf <- do.call(cbind,split(df$value,df$variable))
+    Diff <- data.frame(Difference=newDf[,1] - newDf[,2])
+    
+    p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour="black",fill="white") + stat_function(fun=dnorm,
+                                                                                                                          color="red",
+                                                                                                                          arg=list(mean=mean(Diff$Difference), 
+                                                                                                                                   sd=sd(Diff$Difference)))
+    gridExtra::grid.arrange(p,p2)
+  } else p
   }
   )
   
@@ -149,8 +164,126 @@ shinyServer(function(input, output){
     p <- p + geom_vline(xintercept = tstat,lty=2,col="red") + xlim(xlim) + ggtitle(paste("T-distribution with ", degfree, "degrees of freedom"))
     print(p)
   })
+  output$thecode <- renderPrint({
+    
+    inFile <- input$file1
+    
+    print(as.name(paste0('myfile <- ' , inFile$name)))
+    
+    print(as.name(paste0('sep <- \'', input$sep,'\'')))
+    print(as.name(paste0('quote <- \'', input$quote,'\'')))
+    print(as.name(paste('header <- ', input$header)))
+    print(as.name(paste('skip <- ', input$skip)))
+    print(as.name("data <- read.csv(myfile, header=header, sep=sep, quote=quote,skip=skip)"))
+    
+    if(!input$factors) print(as.name("data <- melt(data)"))
+    print(as.name("colnames(data) <- c('variable','value')"))
+    
+    print(as.name("head(data)"))
+    print(as.name("library(ggplot2)"))
+    print(as.name("ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip())"))
+    
+    print(as.name("lapply(split(data$value,data$variable),summary)"))
+    
+    print(as.name("ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))"))
+    
+    print(as.name(paste0('alternative <- \'', input$alternative,'\'')))
+    print(as.name(paste0('paired <- \'',as.logical(input$paired),'\'')))
+    print(as.name(paste0('var.equal <- \'',as.logical(input$var.equal),'\'')))
+    
+    
+    print(as.name("t.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)"))
+
+    print(as.name("sessionInfo()"))
+  }
+  )
   
   
+  output$downloadScript <- downloadHandler(
+    filename = function() {
+      paste(input$outfile, '.R', sep='')
+    },
+    content = function(file) {
+      inFile <- input$file1
+      
+      cat(file=file,as.name(paste0('myfile <- ' ,inFile$name, '\n')))
+      cat(file=file,as.name(paste0('sep <- \'', input$sep,'\'','\n')),append=TRUE)
+      cat(file=file,as.name(paste0('quote <- \'', input$quote,'\'','\n')),append=TRUE)
+      cat(file=file,as.name(paste('header <- ', input$header,'\n')),append=TRUE)
+      cat(file=file,as.name(paste('skip <- ', input$skip,'\n')),append=TRUE)
+      cat(file=file,as.name("data <- read.csv(myfile, header=header, sep=sep, quote=quote,skip=skip)\n"),append=TRUE)
+      
+    
+      if(!input$factors) cat(file=file,as.name("data <- melt(data)\n"),append=TRUE)
+      cat(file=file,as.name("colnames(data) <- c('variable','value')\n"),append=TRUE)
+      
+      cat(file=file,as.name("head(data)\n"),append=TRUE)
+      cat(file=file,as.name("library(ggplot2)\n"),append=TRUE)
+      cat(file=file,as.name("ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip())\n"),append=TRUE)
+      
+      cat(file=file,as.name("lapply(split(data$value,data$variable),summary)\n"),append=TRUE)
+      
+      cat(file=file,as.name("ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black,fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
+      
+      cat(file=file,as.name(paste0('alternative <- \'', input$alternative,'\'\n')),append=TRUE)
+      cat(file=file,as.name(paste0('paired <- \'',as.logical(input$paired),'\'\n')),append=TRUE)
+      cat(file=file,as.name(paste0('var.equal <- \'',as.logical(input$var.equal),'\'\n')),append=TRUE)
+      
+      
+      cat(file=file,as.name("t.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)\n"),append=TRUE)
+      
+      #formatR::tidy_source(source=file,output = file)
+    }
+  )
+  
+  
+  output$downloadMarkdown <- downloadHandler(
+    filename = function() {
+      paste(input$outfile, '.Rmd', sep='')
+    },
+    content = function(file) {
+      inFile <- input$file1
+      
+      cat(file=file,as.name(paste0('myfile <- ' ,inFile$name, '\n')))
+      cat(file=file,as.name(paste0('sep <- \'', input$sep,'\'','\n')),append=TRUE)
+      cat(file=file,as.name(paste0('quote <- \'', input$quote,'\'','\n')),append=TRUE)
+      cat(file=file,as.name(paste('header <- ', input$header,'\n')),append=TRUE)
+      cat(file=file,as.name(paste('skip <- ', input$skip,'\n')),append=TRUE)
+      cat(file=file,as.name("data <- read.csv(myfile, header=header, sep=sep, quote=quote,skip=skip)\n"),append=TRUE)
+      
+      
+      if(!input$factors) cat(file=file,as.name("data <- melt(data)\n"),append=TRUE)
+      cat(file=file,as.name("colnames(data) <- c('variable','value')\n"),append=TRUE)
+      
+      cat(file=file,as.name("head(data)\n"),append=TRUE)
+      cat(file=file,as.name("library(ggplot2)\n"),append=TRUE)
+      cat(file=file,as.name("ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip())\n"),append=TRUE)
+      
+      cat(file=file,as.name("lapply(split(data$value,data$variable),summary)\n"),append=TRUE)
+      
+      cat(file=file,as.name("ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
+      
+      cat(file=file,as.name(paste0('alternative <- \'', input$alternative,'\'\n')),append=TRUE)
+      cat(file=file,as.name(paste0('paired <- \'',as.logical(input$paired),'\'\n')),append=TRUE)
+      cat(file=file,as.name(paste0('var.equal <- \'',as.logical(input$var.equal),'\'\n')),append=TRUE)
+      
+      
+      cat(file=file,as.name("t.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)\n"),append=TRUE)
+      knitr:::spin(hair=script,knit = FALSE)
+      rmd <- readLines(file)
+      
+      cat(file = file, paste(input$title, "\n=======================\n"))
+      cat(file=file, as.name(paste("###", input$name, "\n")),append=TRUE)    
+      cat(file=file, as.name(paste("### Report Generated at: ", as.character(Sys.time()), "\n")),append=TRUE)    
+      
+      for(i in 1:length(rmd)){
+        cat(file=file, as.name(paste(rmd[i], "\n")),append=TRUE)
+        
+      }
+      
+      #    formatR::tidy_urce(file,output = file)
+    }
+  )
   
 }
 )
