@@ -38,7 +38,7 @@ shinyUI(pageWithSidebar(
   mainPanel(
     tabsetPanel(
 #      tabPanel("Plot",plotOutput("plot")),
-      tabPanel("The data", dataTableOutput("mytable")),
+      tabPanel("The data", dataTableOutput("mytable"), helpText("If you have selected a paired analysis, a table of differences will appear below"),dataTableOutput("tableOfDiffs")),
       tabPanel("Data Distribution",plotOutput("boxplot"),
                verbatimTextOutput("summary")
                ),

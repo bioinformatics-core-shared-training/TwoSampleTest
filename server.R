@@ -55,6 +55,15 @@ shinyServer(function(input, output){
   }
   )
   
+  output$tableOfDiffs= renderDataTable({
+    if(input$paired){
+      df <- data()
+      newDf <- do.call(cbind,split(df$value,df$variable))
+      Diff <- data.frame(Observation = 1:nrow(newDf),newDf,Difference=newDf[,1] - newDf[,2])
+      Diff
+    }
+  }
+  )
 
   
   output$histogram<- reactivePlot(function(){
@@ -96,7 +105,14 @@ shinyServer(function(input, output){
     
     p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()
     
-    print(p)
+    if(input$paired){
+      df <- data.frame(df, Observation = rep(1:(nrow(df)/2),2))
+      
+      p2 <- ggplot(df, aes(x = variable,y=value,col=as.factor(Observation),label=Observation,group=as.factor(Observation))) + geom_line() + geom_text() + coord_flip()
+      gridExtra::grid.arrange(p,p2)
+    } else p
+    
+
 
     
   }
