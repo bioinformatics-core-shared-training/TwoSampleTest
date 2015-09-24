@@ -22,6 +22,7 @@ shinyUI(pageWithSidebar(
                    'Double Quote'='"',
                    'Single Quote'="'"),
                  'Double Quote'),
+    textInput("skip", "Number of rows to skip in data file before reading data",value=0),
     h2("Analysis Parameters"),
     br(),    
     checkboxInput('factors', '1st column is a factor?', FALSE),

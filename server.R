@@ -192,7 +192,7 @@ shinyServer(function(input, output){
       
     } else{
 
-      print(as.name(paste0('myfile <- ' , inFile$name)))
+      print(as.name(paste0('myfile <- \"' , inFile$name, '\"\n')))
       
       print(as.name(paste0('sep <- \'', input$sep,'\'')))
       print(as.name(paste0('quote <- \'', input$quote,'\'')))
@@ -239,13 +239,13 @@ shinyServer(function(input, output){
         message("Writing to file.....")
       } else {
       
-        cat(file=file,as.name(paste0('myfile <- ' ,inFile$name, '\n')))
+        cat(file=file,as.name(paste0('myfile <- \"' , inFile$name, '\"\n')))
         cat(file=file,as.name(paste0('sep <- \'', input$sep,'\'','\n')),append=TRUE)
         cat(file=file,as.name(paste0('quote <- \'', input$quote,'\'','\n')),append=TRUE)
         cat(file=file,as.name(paste('header <- ', input$header,'\n')),append=TRUE)
         cat(file=file,as.name(paste('skip <- ', input$skip,'\n')),append=TRUE)
         cat(file=file,as.name("data <- read.csv(myfile, header=header, sep=sep, quote=quote,skip=skip)\n"),append=TRUE)
-        if(!input$factors) cat(file=file,as.name("data <- melt(data)\n"),append=TRUE)
+        if(!input$factors) cat(file=file,as.name("data <- reshape2::melt(data)\n"),append=TRUE)
         cat(file=file,as.name("colnames(data) <- c('variable','value')\n"),append=TRUE)
         
         }
@@ -253,12 +253,31 @@ shinyServer(function(input, output){
       
       cat(file=file,as.name("head(data)\n"),append=TRUE)
       cat(file=file,as.name("library(ggplot2)\n"),append=TRUE)
-      cat(file=file,as.name("ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()\n"),append=TRUE)
+      cat(file=file,as.name("p <- ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()\n"),append=TRUE)
+      
+      
+      if(input$paired){
+        cat(file=file,as.name("df <- data.frame(data, Observation = rep(1:(nrow(data)/2),2))\n"),append=TRUE)
+        
+        cat(file=file,as.name("p2 <- ggplot(df, aes(x = variable,y=value,col=as.factor(Observation),label=Observation,group=as.factor(Observation))) + geom_line() + geom_text() + coord_flip()\n"),append=TRUE)
+        cat(file=file,as.name("gridExtra::grid.arrange(p,p2)\n"),append=TRUE)
+      } 
+      
+      cat(file=file,as.name("p\n"),append=TRUE)
       
       cat(file=file,as.name("lapply(split(data$value,data$variable),summary)\n"),append=TRUE)
       
-      cat(file=file,as.name("ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
+      cat(file=file,as.name("p <- ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
       
+      
+      if(input$paired){
+        cat(file=file,as.name("newDf <- do.call(cbind,split(data$value,data$variable))\n"),append=TRUE)
+        cat(file=file,as.name("Diff <- data.frame(Difference=newDf[,1] - newDf[,2])\n"),append=TRUE)
+        
+        cat(file=file,as.name("p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + stat_function(fun=dnorm, color='red', arg=list(mean=mean(Diff$Difference), sd=sd(Diff$Difference)))\n"),append=TRUE)
+        cat(file=file,as.name("p <- gridExtra::grid.arrange(p,p2)\n"),append=TRUE)
+      } 
+      cat(file=file,as.name("p\n"),append=TRUE)
       cat(file=file,as.name(paste0('alternative <- \'', input$alternative,'\'\n')),append=TRUE)
       cat(file=file,as.name(paste0('paired <- ',as.logical(input$paired),'\n')),append=TRUE)
       cat(file=file,as.name(paste0('var.equal <-',as.logical(input$var.equal),'\n')),append=TRUE)
@@ -283,10 +302,10 @@ shinyServer(function(input, output){
         cat(file=script,as.name("data <- data.frame(variable=c(rep('Breed.A',20),rep('Breed.B',20)),value=c(20.77,9.08,9.8,8.13,16.54,11.36,11.47,12.1,14.04,16.82,6.32,17.51,9.87,12.41,
                                                                                                7.39,9.23,4.06,8.26,10.24,14.64,15.51,12.93,11.5,16.07,15.51,17.66,11.25,13.65,
                                                                                                14.28,13.21,10.28,12.41,9.63,14.75,9.81,13.02,12.33,11.9,8.98,11.29))\n"))
-        message("Writing to file.....")
+
       } else{
       
-        cat(file=script,as.name(paste0('myfile <- ' ,inFile$name, '\n')))
+        cat(file=script,as.name(paste0('myfile <- \"' , inFile$name, '\"\n')))
         cat(file=script,as.name(paste0('sep <- \'', input$sep,'\'','\n')),append=TRUE)
         cat(file=script,as.name(paste0('quote <- \'', input$quote,'\'','\n')),append=TRUE)
         cat(file=script,as.name(paste('header <- ', input$header,'\n')),append=TRUE)
@@ -294,16 +313,34 @@ shinyServer(function(input, output){
         cat(file=script,as.name("data <- read.csv(myfile, header=header, sep=sep, quote=quote,skip=skip)\n"),append=TRUE)
         
         
-        if(!input$factors) cat(file=file,as.name("data <- melt(data)\n"),append=TRUE)
+        if(!input$factors) cat(file=script,as.name("data <- reshape2::melt(data)\n"),append=TRUE)
         cat(file=script,as.name("colnames(data) <- c('variable','value')\n"),append=TRUE)
       }
       cat(file=script,as.name("head(data)\n"),append=TRUE)
       cat(file=script,as.name("library(ggplot2)\n"),append=TRUE)
-      cat(file=script,as.name("ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()\n"),append=TRUE)
+      cat(file=script,as.name("p <- ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()\n"),append=TRUE)
+      
+      if(input$paired){
+        cat(file=script,as.name("df <- data.frame(data, Observation = rep(1:(nrow(data)/2),2))\n"),append=TRUE)
+        
+        cat(file=script,as.name("p2 <- ggplot(df, aes(x = variable,y=value,col=as.factor(Observation),label=Observation,group=as.factor(Observation))) + geom_line() + geom_text() + coord_flip()\n"),append=TRUE)
+        cat(file=script,as.name("gridExtra::grid.arrange(p,p2)\n"),append=TRUE)
+      } 
+      cat(file=script,as.name("p\n"),append=TRUE)
       
       cat(file=script,as.name("lapply(split(data$value,data$variable),summary)\n"),append=TRUE)
       
-      cat(file=script,as.name("ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
+      cat(file=script,as.name("p <- ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
+      
+      
+      if(input$paired){
+        cat(file=script,as.name("newDf <- do.call(cbind,split(data$value,data$variable))\n"),append=TRUE)
+        cat(file=script,as.name("Diff <- data.frame(Difference=newDf[,1] - newDf[,2])\n"),append=TRUE)
+        
+        cat(file=script,as.name("p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + stat_function(fun=dnorm,color='red',arg=list(mean=mean(Diff$Difference), sd=sd(Diff$Difference)))\n"),append=TRUE)
+        cat(file=script,as.name("p <- gridExtra::grid.arrange(p,p2)\n"),append=TRUE)
+      } 
+      cat(file=script,as.name("p\n"),append=TRUE)
       
       cat(file=script,as.name(paste0('alternative <- \'', input$alternative,'\'\n')),append=TRUE)
       cat(file=script,as.name(paste0('paired <-',as.logical(input$paired),'\n')),append=TRUE)
