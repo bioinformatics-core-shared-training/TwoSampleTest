@@ -50,20 +50,24 @@ shinyUI(pageWithSidebar(
       
       tabPanel("t test",h4("Screen output in R"),plotOutput("tdist"),verbatimTextOutput("ttest")),
 
-      tabPanel("R code",
+      tabPanel("Reproducible Analysis",
+               h4("R Script"),
+               
                helpText("You will be able to re-run this analysis in R by downloading the R code below"),
                strong("The input file that you are analysing must be in your R working directory in order for the script to run"),
-               h4("Code Preview"),
-               verbatimTextOutput("thecode"),
+               helpText("In order to compile the report in RStudio, you will need to install the ggplot2, rmarkdown, reshape2,gridExtra and knitr packages"),br(),
+               code("install.packages(c('knitr','ggplot2','rmarkdown,'reshape2','gridExtra'))"),
+               br(),
+
                downloadLink('downloadScript', 'Download R Script'),
                br(),
-               downloadLink('downloadMarkdown', 'Download R Markdown'),
+
                br(),
                #             downloadLink('downloadPDF', 'Download HTML Report')
-               helpText("We recommend RStudio to run the R code and compile reports"),
+               h4("Template to generate a reproducible document"),
+               helpText("We recommend RStudio to run the R code and compile a pdf or HTML report that will show the results of your analysis along with the code used"),
                img(src="https://www.rstudio.com/wp-content/uploads/2014/03/blue-125.png"), br(),a("RStudio",href="https://www.rstudio.com/"),br(),
-               helpText("In order to compile the report in RStudio, you will need to install the ggplot2, rmarkdown and knitr packages"),br(),
-               code("install.packages(c('knitr','ggplot2','rmarkdown'))")
+               downloadLink('downloadMarkdown', 'Download R Markdown file')
       )
       )
     )
