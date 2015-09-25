@@ -2,7 +2,7 @@ library(shiny)
 library(ggplot2)
 library(reshape2)
 library(gridExtra)
-
+library(pastecs)
 
 shinyServer(function(input, output){
   
@@ -137,6 +137,12 @@ shinyServer(function(input, output){
   output$summary <- renderPrint({
     df <- data()
     lapply(split(df$value,df$variable),summary)
+
+  })
+  
+  output$adv.summary <- renderPrint({
+    df <- data()
+    by(df$value,df$variable,stat.desc,basic=FALSE,norm=TRUE)
   })
   
   output$tdist <- reactivePlot(function(){
