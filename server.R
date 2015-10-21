@@ -131,7 +131,8 @@ shinyServer(function(input, output){
     alternative = input$alternative
     paired <- as.logical(input$paired)
     var.equal <- as.logical(input$var.equal)    
-    t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+    if(input$do.parametric) t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+    else wilcox.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
   })
 
   output$summary <- renderPrint({
@@ -147,44 +148,50 @@ shinyServer(function(input, output){
   
   output$tdist <- reactivePlot(function(){
   
-    df <- data()
-    #datacol1 <- as.numeric(input$dataCol1)
-    #datacol2 <- as.numeric(input$dataCol2)
+    if(input$do.parametric){
     
-    #X <- df[,datacol1]
-    #Y <- df[,datacol2]
-    alternative = input$alternative
-    paired <- as.logical(input$paired)
-    var.equal <- as.logical(input$var.equal)    
-    tt <- t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
-
-    tstat <- tt$statistic
-    degfree <- tt$parameter
-
-    alternative = input$alternative
+      df <- data()
+      #datacol1 <- as.numeric(input$dataCol1)
+      #datacol2 <- as.numeric(input$dataCol2)
+      
+      #X <- df[,datacol1]
+      #Y <- df[,datacol2]
+      alternative = input$alternative
+      paired <- as.logical(input$paired)
+      var.equal <- as.logical(input$var.equal)    
+      tt <- t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+  
+      tstat <- tt$statistic
+      degfree <- tt$parameter
+  
+      alternative = input$alternative
+      
+      df <- data.frame(ts = rt(10000,df=degfree))
+  
+      
+      p<- ggplot(df, aes(x=ts)) + 
+        geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                       binwidth=.5,
+                       colour="black", fill="white") +
+        geom_density()
+      
+     xlim <- c(-4,4)
+      
+      critvals <- c(qt(0.05, degfree),qt(0.95,degfree))
+      rect1 <- data.frame(xmin = min(critvals[1],xlim),xmax = critvals[1], ymin=-Inf,ymax=Inf)
+      rect2 <- data.frame(xmin = critvals[2],xmax = max(critvals[2],xlim), ymin=-Inf,ymax=Inf)
+      
+     p <- switch(alternative,
+      "two.sided" = p + geom_rect(data=rect1,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE) + geom_rect(data=rect2,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE),
+      "greater" = p + geom_rect(data=rect2,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE),
+      "less" =  p + geom_rect(data=rect1,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE)
+     )   
+      p <- p + geom_vline(xintercept = tstat,lty=2,col="red") + xlim(xlim) + ggtitle(paste("T-distribution with ", degfree, "degrees of freedom"))
+      print(p)
     
-    df <- data.frame(ts = rt(10000,df=degfree))
-
+    }
     
-    p<- ggplot(df, aes(x=ts)) + 
-      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                     binwidth=.5,
-                     colour="black", fill="white") +
-      geom_density()
     
-   xlim <- c(-4,4)
-    
-    critvals <- c(qt(0.05, degfree),qt(0.95,degfree))
-    rect1 <- data.frame(xmin = min(critvals[1],xlim),xmax = critvals[1], ymin=-Inf,ymax=Inf)
-    rect2 <- data.frame(xmin = critvals[2],xmax = max(critvals[2],xlim), ymin=-Inf,ymax=Inf)
-    
-   p <- switch(alternative,
-    "two.sided" = p + geom_rect(data=rect1,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE) + geom_rect(data=rect2,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE),
-    "greater" = p + geom_rect(data=rect2,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE),
-    "less" =  p + geom_rect(data=rect1,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE)
-   )   
-    p <- p + geom_vline(xintercept = tstat,lty=2,col="red") + xlim(xlim) + ggtitle(paste("T-distribution with ", degfree, "degrees of freedom"))
-    print(p)
   })
   output$thecode <- renderPrint({
     
@@ -288,8 +295,9 @@ shinyServer(function(input, output){
       cat(file=file,as.name(paste0('paired <- ',as.logical(input$paired),'\n')),append=TRUE)
       cat(file=file,as.name(paste0('var.equal <-',as.logical(input$var.equal),'\n')),append=TRUE)
       
-      
-      cat(file=file,as.name("t.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)\n"),append=TRUE)
+      if(input$do.parametric){
+        cat(file=file,as.name("t.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)\n"),append=TRUE)
+      } else cat(file=file,as.name("wilcox.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)\n"),append=TRUE)
       
       #formatR::tidy_source(source=file,output = file)
     }
@@ -352,8 +360,10 @@ shinyServer(function(input, output){
       cat(file=script,as.name(paste0('paired <-',as.logical(input$paired),'\n')),append=TRUE)
       cat(file=script,as.name(paste0('var.equal <-',as.logical(input$var.equal),'\n')),append=TRUE)
       
+      if(input$do.parametric){
+        cat(file=script,as.name("t.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)\n"),append=TRUE)
+      } else cat(file=script,as.name("wilcox.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)\n"),append=TRUE)
       
-      cat(file=script,as.name("t.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)\n"),append=TRUE)
       knitr:::spin(hair=script,knit = FALSE)
       rmd <- readLines(file)
       

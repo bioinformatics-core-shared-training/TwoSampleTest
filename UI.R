@@ -23,10 +23,11 @@ shinyUI(pageWithSidebar(
                    'Single Quote'="'"),
                  'Double Quote'),
     textInput("skip", "Number of rows to skip in data file before reading data",value=0),
+    checkboxInput('factors', '1st column is a factor?', FALSE),
     h2("Analysis Parameters"),
     br(),    
-    checkboxInput('factors', '1st column is a factor?', FALSE),
-    
+    helpText("Use the histograms and boxplot to judge whether you need to use a parametric, or non-parametric test"),
+    checkboxInput("do.parametric",label = "Use Parametric Test?",value = TRUE),
     br(),
     radioButtons("alternative", "Alternative", c("Two-sided"="two.sided", "Greater" = "greater", "Lower"="less"),"two.sided"),
     checkboxInput('paired', 'Paired Test', FALSE),
@@ -48,26 +49,24 @@ shinyUI(pageWithSidebar(
        #        plotOutput("zdist"),
         #       verbatimTextOutput("ttest")),
       
-      tabPanel("t test",h4("Screen output in R"),plotOutput("tdist"),verbatimTextOutput("ttest")),
+      tabPanel("t test",h4("Screen output in R"),verbatimTextOutput("ttest"),helpText("If you have chosen a Parametric test, the comparison of the calculated test-statistic to the reference distribution will be shown here"),plotOutput("tdist")),
 
       tabPanel("Reproducible Analysis",
                h4("R Script"),
                
                helpText("You will be able to re-run this analysis in R by downloading the R code below"),
+               helpText("We recommend RStudio to run the R code and compile a pdf or HTML report that will show the results of your analysis along with the code used"),
+               img(src="https://www.rstudio.com/wp-content/uploads/2014/03/blue-125.png"), br(),a("RStudio",href="https://www.rstudio.com/"),br(),
                strong("The input file that you are analysing must be in your R working directory in order for the script to run"),
                helpText("In order to compile the report in RStudio, you will need to install the ggplot2, rmarkdown, reshape2,gridExtra and knitr packages"),br(),
                code("install.packages(c('knitr','ggplot2','rmarkdown,'reshape2','gridExtra'))"),
                br(),
-
                downloadLink('downloadScript', 'Download R Script'),
                br(),
-
                br(),
-               #             downloadLink('downloadPDF', 'Download HTML Report')
-               h4("Template to generate a reproducible document"),
-               helpText("We recommend RStudio to run the R code and compile a pdf or HTML report that will show the results of your analysis along with the code used"),
-               img(src="https://www.rstudio.com/wp-content/uploads/2014/03/blue-125.png"), br(),a("RStudio",href="https://www.rstudio.com/"),br(),
-               downloadLink('downloadMarkdown', 'Download R Markdown file')
+               downloadLink('downloadMarkdown', 'Download R Markdown file'),
+               h2("Code preview..."),
+               verbatimTextOutput("thecode")
       )
       )
     )
