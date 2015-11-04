@@ -28,10 +28,20 @@ shinyUI(pageWithSidebar(
     br(),    
     helpText("Use the histograms and boxplot to judge whether you need to use a parametric, or non-parametric test"),
     checkboxInput("do.parametric",label = "Use Parametric Test?",value = TRUE),
-    br(),
-    radioButtons("alternative", "Alternative", c("Two-sided"="two.sided", "Greater" = "greater", "Lower"="less"),"two.sided"),
+    helpText("Alternatively, you could choose to transform the data prior to statistical testing..."),
+    radioButtons("transform","Transformation",c("None"="none","Log10"="log.10","Log2"="log.2","Natural Log"="log"),"none"),
+    h3("Relationship between groups"),
+    helpText("If your two groups are dependent, you should choose a paired test. If your groups are independant, leave this box un-ticked"),
     checkboxInput('paired', 'Paired Test', FALSE),
+    h3("Variances"),
+    helpText("Inspect the histograms and boxplots, or use the result of the F-test to judge whether the variances of each group are approximately the same"),
     checkboxInput('var.equal', 'Equal Variances?', FALSE),
+    br(),
+    helpText(""),
+    radioButtons("alternative", "Alternative", c("Two-sided"="two.sided", "Greater" = "greater", "Lower"="less"),"two.sided"),
+  
+    br(),
+    h2("Report Parameters"),
     textInput("outfile", "What to call the output R script",value="analysis"),
   textInput("name", "Your Name",value="Anon."),
   textInput("title", "What title to use in the report",value="My R Analysis")
@@ -42,14 +52,14 @@ shinyUI(pageWithSidebar(
 #      tabPanel("Plot",plotOutput("plot")),
       tabPanel("The data", dataTableOutput("mytable"), helpText("If you have selected a paired analysis, a table of differences will appear below"),dataTableOutput("tableOfDiffs")),
       tabPanel("Data Distribution",plotOutput("boxplot"),h3("Basic Summary"),br(),
-               verbatimTextOutput("summary"),h3("Advanced Summary"),br(),verbatimTextOutput("adv.summary")
+               verbatimTextOutput("summary")#,h3("Advanced Summary"),br(),verbatimTextOutput("adv.summary")
                ),
-      tabPanel("Histogram",plotOutput("histogram")),
+      tabPanel("Histogram",plotOutput("histogram"),helpText("F test to compare the variances of two samples from normal populations"),verbatimTextOutput("vartest")),
       #tabPanel("t test", h4("Screen output in R"),
        #        plotOutput("zdist"),
         #       verbatimTextOutput("ttest")),
       
-      tabPanel("t test",h4("Screen output in R"),verbatimTextOutput("ttest"),helpText("If you have chosen a Parametric test, the comparison of the calculated test-statistic to the reference distribution will be shown here"),plotOutput("tdist")),
+      tabPanel("Test Result",h4("Screen output in R"),verbatimTextOutput("ttest"),helpText("If you have chosen a Parametric test, the comparison of the calculated test-statistic to the reference distribution will be shown here"),plotOutput("tdist")),
 
       tabPanel("Reproducible Analysis",
                h4("R Script"),

@@ -51,6 +51,17 @@ shinyServer(function(input, output){
   
   output$mytable= renderDataTable({
     df <- data()
+    
+    if(!input$transform =="none"){
+      
+      df$value <- switch(input$transform,
+                             log.2 = log2(df$value),
+                             log.10 = log10(df$value),
+                             log = log(df$value)
+      )
+    }
+    
+
     df
   }
   )
@@ -58,6 +69,14 @@ shinyServer(function(input, output){
   output$tableOfDiffs= renderDataTable({
     if(input$paired){
       df <- data()
+      if(!input$transform =="none"){
+        
+        df$value <- switch(input$transform,
+                           log.2 = log2(df$value),
+                           log.10 = log10(df$value),
+                           log = log(df$value)
+        )
+      }
       newDf <- do.call(cbind,split(df$value,df$variable))
       Diff <- data.frame(Observation = 1:nrow(newDf),newDf,Difference=newDf[,1] - newDf[,2])
       Diff
@@ -70,7 +89,14 @@ shinyServer(function(input, output){
     
   df <- data()
   
-
+  if(!input$transform =="none"){
+    
+    df$value <- switch(input$transform,
+                       log.2 = log2(df$value),
+                       log.10 = log10(df$value),
+                       log = log(df$value)
+    )
+  }
   
   p<- ggplot(df, aes(x=value)) + 
     geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
@@ -98,6 +124,16 @@ shinyServer(function(input, output){
   output$boxplot<- reactivePlot(function(){
     
     df <- data()
+    
+    if(!input$transform =="none"){
+      
+      df$value <- switch(input$transform,
+                         log.2 = log2(df$value),
+                         log.10 = log10(df$value),
+                         log = log(df$value)
+      )
+    }
+    
     #datacol1 <- as.numeric(input$dataCol1)
     #datacol2 <- as.numeric(input$dataCol2)
     
@@ -119,12 +155,41 @@ shinyServer(function(input, output){
   )
   
 
+  output$vartest <-renderPrint({
+    df <- data()
+    #datacol1 <- as.numeric(input$dataCol1)
+    #datacol2 <- as.numeric(input$dataCol2)
+    
+    if(!input$transform =="none"){
+      
+      df$value <- switch(input$transform,
+                         log.2 = log2(df$value),
+                         log.10 = log10(df$value),
+                         log = log(df$value)
+      )
+    }
+    
+    
+    var.test(value~variable,data=df)
+    }
+  
+  )
+  
+  
   
   output$ttest <-renderPrint({
     df <- data()
     #datacol1 <- as.numeric(input$dataCol1)
     #datacol2 <- as.numeric(input$dataCol2)
     
+    if(!input$transform =="none"){
+      
+      df$value <- switch(input$transform,
+                         log.2 = log2(df$value),
+                         log.10 = log10(df$value),
+                         log = log(df$value)
+      )
+    }
     
     #X <- df[,datacol1]
     #Y <- df[,datacol2]
@@ -137,7 +202,16 @@ shinyServer(function(input, output){
 
   output$summary <- renderPrint({
     df <- data()
-    lapply(split(df$value,df$variable),summary)
+    if(!input$transform =="none"){
+      
+      df$value <- switch(input$transform,
+                         log.2 = log2(df$value),
+                         log.10 = log10(df$value),
+                         log = log(df$value)
+      )
+    }
+    
+    lapply(split(df$value,df$variable),RcmdrMisc::numSummary)
 
   })
   
@@ -151,6 +225,14 @@ shinyServer(function(input, output){
     if(input$do.parametric){
     
       df <- data()
+      if(!input$transform =="none"){
+        
+        df$value <- switch(input$transform,
+                           log.2 = log2(df$value),
+                           log.10 = log10(df$value),
+                           log = log(df$value)
+        )
+      }
       #datacol1 <- as.numeric(input$dataCol1)
       #datacol2 <- as.numeric(input$dataCol2)
       
