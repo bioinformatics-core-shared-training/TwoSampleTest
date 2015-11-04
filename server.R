@@ -121,6 +121,25 @@ shinyServer(function(input, output){
   }
   )
   
+  
+  output$plotMeans<- reactivePlot(function(){
+    
+    df <- data()
+    
+    if(!input$transform =="none"){
+      
+      df$value <- switch(input$transform,
+                         log.2 = log2(df$value),
+                         log.10 = log10(df$value),
+                         log = log(df$value)
+      )
+    }
+    
+    with(df, RcmdrMisc::plotMeans(value,variable,error.bars="conf.int",level=0.95))
+    
+  }
+  )
+  
   output$boxplot<- reactivePlot(function(){
     
     df <- data()
