@@ -98,15 +98,29 @@ shinyServer(function(input, output){
     )
   }
   
-  p<- ggplot(df, aes(x=value)) + 
+  dl <- split(df,df$variable)
+  df1 <- dl[[1]]
+  df2 <- dl[[2]]
+  
+  p1<- ggplot(df1, aes(x=value)) + 
     geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
 
-                   colour="black",fill="white") + facet_wrap(~variable)
+                   colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1])
   
-  p <- p + stat_function(fun=dnorm,
+  p1 <- p1 + stat_function(fun=dnorm,
                          color="red",
-                         arg=list(mean=mean(df$value), 
-                                  sd=sd(df$value)))
+                         arg=list(mean=mean(na.omit(df1$value)), 
+                                  sd=sd(na.omit(df1$value))))
+  p2<- ggplot(df2, aes(x=value)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   
+                   colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[2])
+  
+  p2 <- p2 + stat_function(fun=dnorm,
+                           color="red",
+                           arg=list(mean=mean(df2$value), 
+                                    sd=sd(df2$value)))
+  p <- grid.arrange(p1,p2,ncol=2)
   
   if(input$paired){
     newDf <- do.call(cbind,split(df$value,df$variable))
