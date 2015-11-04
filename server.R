@@ -382,7 +382,7 @@ shinyServer(function(input, output){
       cat(file=file,as.name("lapply(split(data$value,data$variable),summary)\n"),append=TRUE)
       
       cat(file=file,as.name("p <- ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
-      cat(file=file,as.name("var.test(value~variable,data=data)\n"))
+      cat(file=file,as.name("var.test(value~variable,data=data)\n"),append=TRUE)
       
       
       if(input$paired){
@@ -456,7 +456,7 @@ shinyServer(function(input, output){
         cat(file=script,as.name("p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + stat_function(fun=dnorm,color='red',arg=list(mean=mean(Diff$Difference), sd=sd(Diff$Difference)))\n"),append=TRUE)
         cat(file=script,as.name("p <- gridExtra::grid.arrange(p,p2)\n"),append=TRUE)
       } 
-      cat(file=script,as.name("var.test(value~variable,data=data)\n"))
+      cat(file=script,as.name("var.test(value~variable,data=data)\n"),append=TRUE)
       
       cat(file=script,as.name("p\n"),append=TRUE)
       
