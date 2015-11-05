@@ -74,9 +74,7 @@ shinyUI(pageWithSidebar(
                downloadLink('downloadScript', 'Download R Script'),
                br(),
                br(),
-               downloadLink('downloadMarkdown', 'Download R Markdown file'),
-               h2("Code preview..."),
-               verbatimTextOutput("thecode")
+               downloadLink('downloadMarkdown', 'Download R Markdown file')
       )
       )
     )

@@ -172,12 +172,12 @@ shinyServer(function(input, output){
     
    #mdf <- melt(df[,c(datacol1,datacol2)])
     
-    p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()
+    p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + geom_point() + coord_flip()
     
     if(input$paired){
       df <- data.frame(df, Observation = rep(1:(nrow(df)/2),2))
       
-      p2 <- ggplot(df, aes(x = variable,y=value,col=as.factor(Observation),label=Observation,group=as.factor(Observation))) + geom_line() + geom_text() + coord_flip()
+      p2 <- ggplot(df, aes(x = variable,y=value,label=Observation,group=as.factor(Observation))) + geom_line() + geom_text() + coord_flip()
       gridExtra::grid.arrange(p,p2)
     } else p
     
