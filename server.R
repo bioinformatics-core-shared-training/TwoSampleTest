@@ -61,6 +61,17 @@ shinyServer(function(input, output){
       )
     }
     
+    
+    if(input$paired){
+      
+      newDf <- data.frame(do.call(cbind,split(df$value,df$variable)))
+      newDf$Difference=newDf[,1] - newDf[,2]
+      newDf$Sign <- "="
+      newDf$Sign[newDf$Difference > 0] <- "+"
+      newDf$Sign[newDf$Difference < 0] <- "-"
+      df <- newDf
+      }
+    
 
     df
   }
@@ -172,7 +183,7 @@ shinyServer(function(input, output){
     
    #mdf <- melt(df[,c(datacol1,datacol2)])
     
-    p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + geom_point() + coord_flip()
+    p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + geom_jitter(position = position_jitter(width = .05)) + coord_flip()
     
     if(input$paired){
       df <- data.frame(df, Observation = rep(1:(nrow(df)/2),2))
@@ -231,16 +242,27 @@ shinyServer(function(input, output){
     var.equal <- as.logical(input$var.equal)    
     if(input$do.parametric) t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
     else {
-      if (input$symmetrical) wilcox.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
-      else{
-        nms <- levels(df$variable)
-        df2 <- data.frame(X = df$value[df$variable==nms[1]], Y = df$value[df$variable==nms[2]])
-        npos <- sum(df2[,1]>df2[,2])
-        nneg <- sum(df2[,1] < df2[,2])
-        x <- min(npos,nneg)
-        n <- sum(df2[,1] != df2[,2])
-        pbinom(q = x, size = n,prob = 0.5)*2
-      }
+      
+      if(paired){
+      
+        if (input$symmetrical) wilcox.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+        else{
+          nms <- levels(df$variable)
+          df2 <- data.frame(X = df$value[df$variable==nms[1]], Y = df$value[df$variable==nms[2]])
+          npos <- sum(df2[,1]>df2[,2])
+          nneg <- sum(df2[,1] < df2[,2])
+          x <- min(npos,nneg)
+          n <- sum(df2[,1] != df2[,2])
+
+          cat(paste("Number of +'s", npos,"\n"))
+          cat(paste("Number of -'s", nneg,"\n"))
+          cat(paste("Test statistic:", x,"\n"))
+          pv <- round(pbinom(q = x, size = n,prob = 0.5)*2,3)
+          cat(paste("P-value using binomial distribution with",n, "trials and p=0.5:",pv,"\n"))
+          
+        }
+      } 
+      else wilcox.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
     }
   })
 

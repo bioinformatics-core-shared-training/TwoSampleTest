@@ -52,7 +52,7 @@ shinyUI(pageWithSidebar(
   mainPanel(
     tabsetPanel(
 #      tabPanel("Plot",plotOutput("plot")),
-      tabPanel("The data", dataTableOutput("mytable"), helpText("If you have selected a paired analysis, a table of differences will appear below"),dataTableOutput("tableOfDiffs")),
+      tabPanel("The data", dataTableOutput("mytable")),
       tabPanel("Data Distribution",plotOutput("boxplot"),h3("Basic Summary"),br(),
                verbatimTextOutput("summary"),plotOutput("plotMeans")#,h3("Advanced Summary"),br(),verbatimTextOutput("adv.summary")
                ),
