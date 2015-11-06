@@ -3,7 +3,7 @@ library(ggplot2)
 library(reshape2)
 library(gridExtra)
 library(pastecs)
-
+library(tidyr)
 shinyServer(function(input, output){
   
   data <- reactive({inFile <- input$file1
@@ -230,7 +230,18 @@ shinyServer(function(input, output){
     paired <- as.logical(input$paired)
     var.equal <- as.logical(input$var.equal)    
     if(input$do.parametric) t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
-    else wilcox.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+    else {
+      if (input$symmetrical) wilcox.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+      else{
+        nms <- levels(df$variable)
+        df2 <- data.frame(X = df$value[df$variable==nms[1]], Y = df$value[df$variable==nms[2]])
+        npos <- sum(df2[,1]>df2[,2])
+        nneg <- sum(df2[,1] < df2[,2])
+        x <- min(npos,nneg)
+        n <- sum(df2[,1] != df2[,2])
+        pbinom(q = x, size = n,prob = 0.5)*2
+      }
+    }
   })
 
   output$summary <- renderPrint({
@@ -308,48 +319,7 @@ shinyServer(function(input, output){
     
     
   })
-  output$thecode <- renderPrint({
-    
-    inFile <- input$file1
-    
-    if(is.null(inFile$name)){
-      
-      print(as.name("data <- data.frame(variable=c(rep('Breed.A',20),rep('Breed.B',20)),value=c(20.77,9.08,9.8,8.13,16.54,11.36,11.47,12.1,14.04,16.82,6.32,17.51,9.87,12.41,
-                                                                                               7.39,9.23,4.06,8.26,10.24,14.64,15.51,12.93,11.5,16.07,15.51,17.66,11.25,13.65,
-                                                                                               14.28,13.21,10.28,12.41,9.63,14.75,9.81,13.02,12.33,11.9,8.98,11.29))\n"))
-      
-    } else{
 
-      print(as.name(paste0('myfile <- \"' , inFile$name, '\"\n')))
-      
-      print(as.name(paste0('sep <- \'', input$sep,'\'')))
-      print(as.name(paste0('quote <- \'', input$quote,'\'')))
-      print(as.name(paste('header <- ', input$header)))
-      print(as.name(paste('skip <- ', input$skip)))
-      print(as.name("data <- read.csv(myfile, header=header, sep=sep, quote=quote,skip=skip)"))
-      
-      if(!input$factors) print(as.name("data <- melt(data)"))
-      print(as.name("colnames(data) <- c('variable','value')"))
-    }
-    
-    print(as.name("head(data)"))
-    print(as.name("library(ggplot2)"))
-    print(as.name("ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip())"))
-    
-    print(as.name("lapply(split(data$value,data$variable),summary)"))
-    
-    print(as.name("ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))"))
-    
-    print(as.name(paste0('alternative <- \'', input$alternative,'\'')))
-    print(as.name(paste0('paired <- \'',as.logical(input$paired),'\'')))
-    print(as.name(paste0('var.equal <- \'',as.logical(input$var.equal),'\'')))
-    
-    
-    print(as.name("t.test(value~variable,data=data,alternative=alternative,paired=paired,var.equal=var.equal)"))
-
-    print(as.name("sessionInfo()"))
-  }
-  )
   
   
   output$downloadScript <- downloadHandler(

@@ -33,6 +33,8 @@ shinyUI(pageWithSidebar(
     h3("Relationship between groups"),
     helpText("If your two groups are dependent, you should choose a paired test. If your groups are independant, leave this box un-ticked"),
     checkboxInput('paired', 'Paired Test', FALSE),
+    helpText("If the differences are symmetrical about 0, then a wilcox signed-rank test will be used if a non-parametric test is specifed. Un-tick this box if the differences are not symmetrical. A sign test will be used instead"),
+    checkboxInput("symmetrical","Symmetrical Differences",TRUE),
     h3("Variances"),
     helpText("Inspect the histograms and boxplots, or use the result of the F-test to judge whether the variances of each group are approximately the same"),
     checkboxInput('var.equal', 'Equal Variances?', FALSE),
