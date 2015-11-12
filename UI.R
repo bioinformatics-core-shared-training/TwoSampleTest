@@ -5,7 +5,7 @@ library(shiny)
 
 shinyUI(pageWithSidebar(
   
-  headerPanel("Two-sample t-test Example"),
+  headerPanel("Two-sample tests"),
   
   sidebarPanel(
     h2("Data Import Parameters"),
