@@ -19,7 +19,7 @@ shinyServer(function(input, output){
                                                     11.25, 13.65, 14.28, 13.21, 10.28, 12.41, 9.63, 14.75, 9.81, 
                                                     13.02, 12.33, 11.9, 8.98, 11.29)), row.names = c(NA, -40L
                                                     ), .Names = c("variable", "value"), class = "data.frame"))
-                    print(inFile$datapath)
+                    #print(inFile$datapath)
                     data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
                     #read.csv("GraphPad Course Data/diseaseX.csv")
                     
@@ -164,7 +164,6 @@ shinyServer(function(input, output){
                                       sd=sd(df2$value)))
   }
 
-  p <- grid.arrange(p1,p2,ncol=2)
   
   if(input$paired){
     newDf <- do.call(cbind,split(df$value,df$variable))
