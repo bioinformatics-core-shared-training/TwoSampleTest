@@ -113,24 +113,57 @@ shinyServer(function(input, output){
   df1 <- dl[[1]]
   df2 <- dl[[2]]
   
-  p1<- ggplot(df1, aes(x=value)) + 
-    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-
-                   colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1])
+  if(input$default.bins){
   
-  p1 <- p1 + stat_function(fun=dnorm,
-                         color="red",
-                         arg=list(mean=mean(na.omit(df1$value)), 
-                                  sd=sd(na.omit(df1$value))))
-  p2<- ggplot(df2, aes(x=value)) + 
-    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                   
-                   colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[2])
+    p1<- ggplot(df1, aes(x=value)) + 
+      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
   
-  p2 <- p2 + stat_function(fun=dnorm,
+                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1])
+    
+    p1 <- p1 + stat_function(fun=dnorm,
                            color="red",
-                           arg=list(mean=mean(df2$value), 
-                                    sd=sd(df2$value)))
+                           arg=list(mean=mean(na.omit(df1$value)), 
+                                    sd=sd(na.omit(df1$value))))
+    p2<- ggplot(df2, aes(x=value)) + 
+      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                     
+                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[2])
+    
+    p2 <- p2 + stat_function(fun=dnorm,
+                             color="red",
+                             arg=list(mean=mean(df2$value), 
+                                      sd=sd(df2$value)))
+  } else {
+    x <- df1$value
+    binwid <- (max(x)-min(x)) / input$bins
+    print(binwid)
+    
+
+    p1<- ggplot(df1, aes(x=value)) + 
+      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                     binwidth=binwid,
+                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1])
+    
+    p1 <- p1 + stat_function(fun=dnorm,
+                             color="red",
+                             arg=list(mean=mean(na.omit(df1$value)), 
+                                      sd=sd(na.omit(df1$value))))
+    
+    x <- df2$value
+    binwid <- (max(x)-min(x)) / input$bins
+    
+    print(binwid)
+    
+    p2<- ggplot(df2, aes(x=value)) + 
+      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                     binwidth=binwid,
+                     colour="black",fill="white") + xlim(min(df$value),max(df$value))# + ggtitle(names(dl)[2])
+    p2 <- p2 + stat_function(fun=dnorm,
+                             color="red",
+                             arg=list(mean=mean(df2$value), 
+                                      sd=sd(df2$value)))
+  }
+
   p <- grid.arrange(p1,p2,ncol=2)
   
   if(input$paired){
