@@ -164,6 +164,7 @@ shinyServer(function(input, output){
                                       sd=sd(df2$value)))
   }
 
+  p <- grid.arrange(p1,p2,ncol=2)
   
   if(input$paired){
     newDf <- do.call(cbind,split(df$value,df$variable))
@@ -176,6 +177,7 @@ shinyServer(function(input, output){
     gridExtra::grid.arrange(p,p2)
   } else p
   }
+
   )
   
   
