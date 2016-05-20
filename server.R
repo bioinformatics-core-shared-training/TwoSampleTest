@@ -96,7 +96,7 @@ shinyServer(function(input, output){
   )
 
   
-  output$histogram<- reactivePlot(function(){
+  output$histogram<- renderPlot({
     
   df <- data()
   
@@ -118,20 +118,20 @@ shinyServer(function(input, output){
     p1<- ggplot(df1, aes(x=value)) + 
       geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
   
-                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1])
+                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1]) 
     
     p1 <- p1 + stat_function(fun=dnorm,
-                           color="red",
-                           arg=list(mean=mean(na.omit(df1$value)), 
-                                    sd=sd(na.omit(df1$value))))
+                          color="red",
+                         args=list(mean=mean(na.omit(df1$value)), 
+                                 sd=sd(na.omit(df1$value))))
     p2<- ggplot(df2, aes(x=value)) + 
       geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
                      
-                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[2])
+                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[2]) 
     
     p2 <- p2 + stat_function(fun=dnorm,
                              color="red",
-                             arg=list(mean=mean(df2$value), 
+                             args=list(mean=mean(df2$value), 
                                       sd=sd(df2$value)))
   } else {
     x <- df1$value
@@ -142,11 +142,11 @@ shinyServer(function(input, output){
     p1<- ggplot(df1, aes(x=value)) + 
       geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
                      binwidth=binwid,
-                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1])
+                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1]) 
     
     p1 <- p1 + stat_function(fun=dnorm,
                              color="red",
-                             arg=list(mean=mean(na.omit(df1$value)), 
+                             args=list(mean=mean(na.omit(df1$value)), 
                                       sd=sd(na.omit(df1$value))))
     
     x <- df2$value
@@ -157,10 +157,10 @@ shinyServer(function(input, output){
     p2<- ggplot(df2, aes(x=value)) + 
       geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
                      binwidth=binwid,
-                     colour="black",fill="white") + xlim(min(df$value),max(df$value))# + ggtitle(names(dl)[2])
+                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + geom_density( )# + ggtitle(names(dl)[2])
     p2 <- p2 + stat_function(fun=dnorm,
-                             color="red",
-                             arg=list(mean=mean(df2$value), 
+                            color="red",
+                             args=list(mean=mean(df2$value), 
                                       sd=sd(df2$value)))
   }
 
@@ -170,18 +170,19 @@ shinyServer(function(input, output){
     newDf <- do.call(cbind,split(df$value,df$variable))
     Diff <- data.frame(Difference=newDf[,1] - newDf[,2])
     
-    p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour="black",fill="white") + stat_function(fun=dnorm,
+    p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour="black",fill="white") +  stat_function(fun=dnorm,
                                                                                                                           color="red",
-                                                                                                                          arg=list(mean=mean(Diff$Difference), 
+                                                                                                                          args=list(mean=mean(Diff$Difference), 
                                                                                                                                    sd=sd(Diff$Difference)))
-    gridExtra::grid.arrange(p,p2)
-  } else p
+    p <- gridExtra::grid.arrange(p,p2)
+  }
+  print(p)
   }
 
   )
   
   
-  output$plotMeans<- reactivePlot(function(){
+  output$plotMeans<- renderPlot({
     
     df <- data()
     
@@ -199,7 +200,7 @@ shinyServer(function(input, output){
   }
   )
   
-  output$boxplot<- reactivePlot(function(){
+  output$boxplot<- renderPlot({
     
     df <- data()
     
@@ -223,11 +224,10 @@ shinyServer(function(input, output){
       df <- data.frame(df, Observation = rep(1:(nrow(df)/2),2))
       
       p2 <- ggplot(df, aes(x = variable,y=value,label=Observation,group=as.factor(Observation))) + geom_line() + geom_text() + coord_flip()
-      gridExtra::grid.arrange(p,p2)
-    } else p
-    
+      p <- gridExtra::grid.arrange(p,p2)
+    }
 
-
+    print(p)
     
   }
   )
@@ -320,7 +320,7 @@ shinyServer(function(input, output){
     by(df$value,df$variable,stat.desc,basic=FALSE,norm=TRUE)
   })
   
-  output$tdist <- reactivePlot(function(){
+  output$tdist <- renderPlot({
   
     if(input$do.parametric){
     
@@ -368,7 +368,7 @@ shinyServer(function(input, output){
       "greater" = p + geom_rect(data=rect2,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE),
       "less" =  p + geom_rect(data=rect1,aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),color="grey20", alpha=0.5, inherit.aes = FALSE)
      )   
-      p <- p + geom_vline(xintercept = tstat,lty=2,col="red") + xlim(xlim) + ggtitle(paste("T-distribution with ", degfree, "degrees of freedom"))
+      p <- p + geom_vline(xintercept = tstat,lty=2,col="red") + xlim(xlim) + ggtitle(paste("T-distribution with ", round(degfree,2), "degrees of freedom"))
       print(p)
     
     }
@@ -421,7 +421,7 @@ shinyServer(function(input, output){
       
       cat(file=file,as.name("lapply(split(data$value,data$variable),summary)\n"),append=TRUE)
       
-      cat(file=file,as.name("p <- ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
+      cat(file=file,as.name("p <- ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',args=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
       cat(file=file,as.name("var.test(value~variable,data=data)\n"),append=TRUE)
       
       
@@ -429,7 +429,7 @@ shinyServer(function(input, output){
         cat(file=file,as.name("newDf <- do.call(cbind,split(data$value,data$variable))\n"),append=TRUE)
         cat(file=file,as.name("Diff <- data.frame(Difference=newDf[,1] - newDf[,2])\n"),append=TRUE)
         
-        cat(file=file,as.name("p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + stat_function(fun=dnorm, color='red', arg=list(mean=mean(Diff$Difference), sd=sd(Diff$Difference)))\n"),append=TRUE)
+        cat(file=file,as.name("p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + stat_function(fun=dnorm, color='red', args=list(mean=mean(Diff$Difference), sd=sd(Diff$Difference)))\n"),append=TRUE)
         cat(file=file,as.name("p <- gridExtra::grid.arrange(p,p2)\n"),append=TRUE)
       } 
       cat(file=file,as.name("p\n"),append=TRUE)
@@ -486,14 +486,14 @@ shinyServer(function(input, output){
       
       cat(file=script,as.name("lapply(split(data$value,data$variable),summary)\n"),append=TRUE)
       
-      cat(file=script,as.name("p <- ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',arg=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
+      cat(file=script,as.name("p <- ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',args=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
       
       
       if(input$paired){
         cat(file=script,as.name("newDf <- do.call(cbind,split(data$value,data$variable))\n"),append=TRUE)
         cat(file=script,as.name("Diff <- data.frame(Difference=newDf[,1] - newDf[,2])\n"),append=TRUE)
         
-        cat(file=script,as.name("p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + stat_function(fun=dnorm,color='red',arg=list(mean=mean(Diff$Difference), sd=sd(Diff$Difference)))\n"),append=TRUE)
+        cat(file=script,as.name("p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + stat_function(fun=dnorm,color='red',args=list(mean=mean(Diff$Difference), sd=sd(Diff$Difference)))\n"),append=TRUE)
         cat(file=script,as.name("p <- gridExtra::grid.arrange(p,p2)\n"),append=TRUE)
       } 
       cat(file=script,as.name("var.test(value~variable,data=data)\n"),append=TRUE)
