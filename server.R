@@ -118,7 +118,7 @@ shinyServer(function(input, output){
     p1<- ggplot(df1, aes(x=value)) + 
       geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
   
-                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1]) 
+                     colour="black",fill=rgb(29,0,150,maxColorValue=255)) + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1]) 
     
     p1 <- p1 + stat_function(fun=dnorm,
                           color="red",
@@ -127,7 +127,7 @@ shinyServer(function(input, output){
     p2<- ggplot(df2, aes(x=value)) + 
       geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
                      
-                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[2]) 
+                     colour="black",fill=rgb(236,0,140,maxColorValue=255)) + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[2]) 
     
     p2 <- p2 + stat_function(fun=dnorm,
                              color="red",
@@ -142,9 +142,9 @@ shinyServer(function(input, output){
     p1<- ggplot(df1, aes(x=value)) + 
       geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
                      binwidth=binwid,
-                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1]) 
-    
-    p1 <- p1 + stat_function(fun=dnorm,
+                     colour="black",fill=rgb(29,0,150,maxColorValue=255)) + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1]) 
+
+        p1 <- p1 + stat_function(fun=dnorm,
                              color="red",
                              args=list(mean=mean(na.omit(df1$value)), 
                                       sd=sd(na.omit(df1$value))))
@@ -157,7 +157,7 @@ shinyServer(function(input, output){
     p2<- ggplot(df2, aes(x=value)) + 
       geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
                      binwidth=binwid,
-                     colour="black",fill="white") + xlim(min(df$value),max(df$value)) + geom_density( )# + ggtitle(names(dl)[2])
+                     colour="black",fill=rgb(236,0,140,maxColorValue=255)) + xlim(min(df$value),max(df$value)) + geom_density( )# + ggtitle(names(dl)[2])
     p2 <- p2 + stat_function(fun=dnorm,
                             color="red",
                              args=list(mean=mean(df2$value), 
@@ -218,7 +218,7 @@ shinyServer(function(input, output){
     
    #mdf <- melt(df[,c(datacol1,datacol2)])
     
-    p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + geom_jitter(position = position_jitter(width = .05)) + coord_flip()
+    p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
     
     if(input$paired){
       df <- data.frame(df, Observation = rep(1:(nrow(df)/2),2))
