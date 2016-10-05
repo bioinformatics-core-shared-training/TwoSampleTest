@@ -27,27 +27,7 @@ shinyServer(function(input, output){
                     colnames(data) <- c("variable","value")
                     data
   })
-  
-#  output$plot <- renderPlot({
-#    plot(data(), xlab="X", ylab="Y", ylim=c(-300,800))
-#    if(input$line) {
-#      abline(lm(Y ~ X, data=data()), col="dark blue")
-#    }
-#    if(input$means) {
-#      abline(v = mean(data()[,1]), lty="dotted")
-#      abline(h = mean(data()[,2]), lty="dotted")
-#    } 
-#    if(input$ant) {
-#      model = lm(Y ~ X, data=data())
-#      txt = paste("The equation of the line is:\nY = ",
-#                  round(coefficients(model)[1],0)," + ",
-#                  round(coefficients(model)[2],3),"X + error")
-      
-#      boxed.labels(50,600,labels=txt,bg="white", cex=1.25)
-#    }    
-    
-#  })
- #
+
   
   output$mytable= renderDataTable({
     df <- data()
@@ -77,26 +57,67 @@ shinyServer(function(input, output){
   }
   )
   
-  output$tableOfDiffs= renderDataTable({
-    if(input$paired){
-      df <- data()
-      if(!input$transform =="none"){
-        
-        df$value <- switch(input$transform,
-                           log.2 = log2(df$value),
-                           log.10 = log10(df$value),
-                           log = log(df$value)
-        )
-      }
-      newDf <- do.call(cbind,split(df$value,df$variable))
-      Diff <- data.frame(Observation = 1:nrow(newDf),newDf,Difference=newDf[,1] - newDf[,2])
-      Diff
-    }
-  }
-  )
 
-  
   output$histogram<- renderPlot({
+    
+    df <- data()
+    
+    if(!input$transform =="none"){
+      
+      df$value <- switch(input$transform,
+                         log.2 = log2(df$value),
+                         log.10 = log10(df$value),
+                         log = log(df$value)
+      )
+    }
+    
+    dl <- split(df,df$variable)
+    df1 <- dl[[1]]
+    df2 <- dl[[2]]
+    
+    if(input$default.bins){
+      
+      
+      brx <- pretty(range(df1$value), 
+                    n = nclass.Sturges(df1$value),min.n = 1)
+
+      p1 <- ggplot(df1, aes(x=value)) + geom_histogram(breaks=brx,colour="black", fill=rgb(29,0,150,maxColorValue=255),alpha=0.5) + ylab("") 
+      
+      
+      brx <- pretty(range(df2$value), 
+                    n = nclass.Sturges(df2$value),min.n = 1)
+      
+      p2 <- ggplot(df2, aes(x=value)) + geom_histogram(breaks=brx,colour="black", fill=rgb(236,0,140,maxColorValue=255),alpha=0.5) + ylab("") 
+      
+      p <- grid.arrange(p1,p2,ncol=2)
+      
+
+    } else {
+      x <- df1$value
+      binwid <- (max(x)-min(x)) / input$bins
+      print(binwid)
+      
+      p1 <- ggplot(df1, aes(x=value)) + geom_histogram(binwidth=binwid,colour="black", fill=rgb(29,0,150,maxColorValue=255)) + ylab("")
+      
+      x <- df2$value
+      binwid <- (max(x)-min(x)) / input$bins
+      print(binwid)
+      
+      p2 <- ggplot(df2, aes(x=value)) + geom_histogram(binwidth=binwid,colour="black", fill=rgb(236,0,140,maxColorValue=255)) + ylab("")
+      
+      p <- grid.arrange(p1,p2,ncol=2)
+
+    }
+    
+
+    
+    print(p)
+  }
+  
+  )
+  
+  
+  output$histogram.paired <- renderPlot({
     
   df <- data()
   
@@ -112,93 +133,31 @@ shinyServer(function(input, output){
   dl <- split(df,df$variable)
   df1 <- dl[[1]]
   df2 <- dl[[2]]
-  
-  if(input$default.bins){
-  
-    p1<- ggplot(df1, aes(x=value)) + 
-      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-  
-                     colour="black",fill=rgb(29,0,150,maxColorValue=255)) + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1]) 
-    
-    p1 <- p1 + stat_function(fun=dnorm,
-                          color="red",
-                         args=list(mean=mean(na.omit(df1$value)), 
-                                 sd=sd(na.omit(df1$value))))
-    p2<- ggplot(df2, aes(x=value)) + 
-      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                     
-                     colour="black",fill=rgb(236,0,140,maxColorValue=255)) + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[2]) 
-    
-    p2 <- p2 + stat_function(fun=dnorm,
-                             color="red",
-                             args=list(mean=mean(df2$value), 
-                                      sd=sd(df2$value)))
-  } else {
-    x <- df1$value
-    binwid <- (max(x)-min(x)) / input$bins
-    print(binwid)
-    
 
-    p1<- ggplot(df1, aes(x=value)) + 
-      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                     binwidth=binwid,
-                     colour="black",fill=rgb(29,0,150,maxColorValue=255)) + xlim(min(df$value),max(df$value)) + ggtitle(names(dl)[1]) 
-
-        p1 <- p1 + stat_function(fun=dnorm,
-                             color="red",
-                             args=list(mean=mean(na.omit(df1$value)), 
-                                      sd=sd(na.omit(df1$value))))
-    
-    x <- df2$value
-    binwid <- (max(x)-min(x)) / input$bins
-    
-    print(binwid)
-    
-    p2<- ggplot(df2, aes(x=value)) + 
-      geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                     binwidth=binwid,
-                     colour="black",fill=rgb(236,0,140,maxColorValue=255)) + xlim(min(df$value),max(df$value)) + geom_density( )# + ggtitle(names(dl)[2])
-    p2 <- p2 + stat_function(fun=dnorm,
-                            color="red",
-                             args=list(mean=mean(df2$value), 
-                                      sd=sd(df2$value)))
-  }
-
-  p <- grid.arrange(p1,p2,ncol=2)
-  
   if(input$paired){
-    newDf <- do.call(cbind,split(df$value,df$variable))
-    Diff <- data.frame(Difference=newDf[,1] - newDf[,2])
-    
-    p2 <- ggplot(Diff,aes(x=Difference)) + geom_histogram(aes(y=..density..),colour="black",fill="white") +  stat_function(fun=dnorm,
-                                                                                                                          color="red",
-                                                                                                                          args=list(mean=mean(Diff$Difference), 
-                                                                                                                                   sd=sd(Diff$Difference)))
-    p <- gridExtra::grid.arrange(p,p2)
-  }
-  print(p)
-  }
 
-  )
-  
-  
-  output$plotMeans<- renderPlot({
+    newDf <- do.call(cbind,split(df$value,df$variable))
+    df <- data.frame(X=newDf[,1] - newDf[,2])
     
-    df <- data()
-    
-    if(!input$transform =="none"){
-      
-      df$value <- switch(input$transform,
-                         log.2 = log2(df$value),
-                         log.10 = log10(df$value),
-                         log = log(df$value)
-      )
+    if(input$default.bins.paired){
+      brx <- pretty(range(df$X), 
+                    n = nclass.Sturges(df$X),min.n = 1)
+      p <- ggplot(df, aes(x=X)) + geom_histogram(breaks=brx,colour="black", fill=rgb(29,0,150,maxColorValue=255)) + ylab("") 
     }
     
-    with(df, RcmdrMisc::plotMeans(value,variable,error.bars="conf.int",level=0.95))
-    
+    else {
+      binwid <- (max(df$X)-min(df$X)) / input$bins.paired
+      print(binwid)
+      p<- ggplot(df, aes(x=X)) + geom_histogram(binwidth=binwid,colour="black", fill=rgb(29,0,150,maxColorValue=255)) + ylab("")
+    }
+  } else p <- ggplot()
+
+  print(p)
   }
   )
+  
+  
+
   
   output$boxplot<- renderPlot({
     
@@ -218,20 +177,55 @@ shinyServer(function(input, output){
     
    #mdf <- melt(df[,c(datacol1,datacol2)])
     
-    p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
-    
-    if(input$paired){
-      df <- data.frame(df, Observation = rep(1:(nrow(df)/2),2))
-      
-      p2 <- ggplot(df, aes(x = variable,y=value,label=Observation,group=as.factor(Observation))) + geom_line() + geom_text() + coord_flip()
-      p <- gridExtra::grid.arrange(p,p2)
+    if(input$violin){
+      p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_violin(alpha=0.5) + geom_boxplot(fill="white",width=0.1) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
+    } else{
+      p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot(alpha=0.5) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
     }
-
     print(p)
     
   }
   )
   
+  output$boxplot.paired<- renderPlot({
+    
+    df <- data()
+    
+    if(!input$transform =="none"){
+      
+      df$value <- switch(input$transform,
+                         log.2 = log2(df$value),
+                         log.10 = log10(df$value),
+                         log = log(df$value)
+      )
+    }
+    dl <- split(df,df$variable)
+    df1 <- dl[[1]]
+    df2 <- dl[[2]]
+    
+    if(input$paired){
+      
+      newDf <- do.call(cbind,split(df$value,df$variable))
+      df <- data.frame(value=newDf[,1] - newDf[,2],variable="Difference")
+
+    #datacol1 <- as.numeric(input$dataCol1)
+    #datacol2 <- as.numeric(input$dataCol2)
+    
+    #mdf <- melt(df[,c(datacol1,datacol2)])
+    
+      if(input$violin.paired){
+        p <- ggplot(df, aes(x = variable,y=value)) + geom_violin(fill=rgb(236,0,140,maxColorValue=255)) + geom_boxplot(fill="white",width=0.1) + geom_jitter(position = position_jitter(width = .05)) + coord_flip()
+      } else{
+        p <- ggplot(df, aes(x = variable,y=value)) + geom_boxplot(fill=rgb(236,0,140,maxColorValue=255)) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() 
+        }
+      
+    } else p <- ggplot()
+    
+      print(p)
+      
+      
+  }
+  )
 
   output$vartest <-renderPrint({
     df <- data()
