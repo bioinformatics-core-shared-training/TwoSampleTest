@@ -68,7 +68,8 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                             "Number of bins:",
                                             min = 1,
                                             max = 50,
-                                            value = 30)
+                                            value = 30),
+                                checkboxInput("sameScale","Use same scale on x-axis for both groups",value=FALSE)
 
                                 
                               ),

@@ -75,6 +75,8 @@ shinyServer(function(input, output){
     df1 <- dl[[1]]
     df2 <- dl[[2]]
     
+    lims <- range(df$value)
+    
     if(input$default.bins){
       
       
@@ -83,11 +85,15 @@ shinyServer(function(input, output){
 
       p1 <- ggplot(df1, aes(x=value)) + geom_histogram(breaks=brx,colour="black", fill=rgb(29,0,150,maxColorValue=255),alpha=0.5) + ylab("") 
       
+      if(input$sameScale) p1 <- p1 + xlim(lims)
+      
       
       brx <- pretty(range(df2$value), 
                     n = nclass.Sturges(df2$value),min.n = 1)
       
       p2 <- ggplot(df2, aes(x=value)) + geom_histogram(breaks=brx,colour="black", fill=rgb(236,0,140,maxColorValue=255),alpha=0.5) + ylab("") 
+      
+      if(input$sameScale) p2 <- p2 + xlim(lims)
       
       p <- grid.arrange(p1,p2,ncol=2)
       
@@ -99,11 +105,15 @@ shinyServer(function(input, output){
       
       p1 <- ggplot(df1, aes(x=value)) + geom_histogram(binwidth=binwid,colour="black", fill=rgb(29,0,150,maxColorValue=255)) + ylab("")
       
+      if(input$sameScale) p1 <- p1 + xlim(lims)
+      
       x <- df2$value
       binwid <- (max(x)-min(x)) / input$bins
       print(binwid)
       
       p2 <- ggplot(df2, aes(x=value)) + geom_histogram(binwidth=binwid,colour="black", fill=rgb(236,0,140,maxColorValue=255)) + ylab("")
+      
+      if(input$sameScale) p2 <- p2 + xlim(lims)
       
       p <- grid.arrange(p1,p2,ncol=2)
 
