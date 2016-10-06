@@ -355,12 +355,14 @@ shinyServer(function(input, output){
       df <- data.frame(ts = rt(10000,df=degfree))
   
       
-      p<- ggplot(df, aes(x=ts)) + 
-        geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                       binwidth=.5,
-                       colour="black", fill="white") +
-        geom_density()
-      
+      #p<- ggplot(df, aes(x=ts)) + 
+       # geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+        #               binwidth=.5,
+         #              colour="black", fill="white") +
+        #geom_density()
+      #
+     p <- ggplot(data.frame(x=c(-4,4)),aes(x)) + stat_function(fun=dt, args=list(df=degfree))
+     
      xlim <- c(-4,4)
       
       critvals <- c(qt(0.05, degfree),qt(0.95,degfree))
