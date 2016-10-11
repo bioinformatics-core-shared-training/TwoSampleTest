@@ -192,6 +192,9 @@ shinyServer(function(input, output){
     } else{
       p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot(alpha=0.5) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
     }
+
+    if(input$showCI) p <- p + stat_summary(fun.data="mean_cl_normal",colour="red",fun.args = list(mult=1.96))
+    
     print(p)
     
   }
@@ -230,7 +233,7 @@ shinyServer(function(input, output){
         }
       
     } else p <- ggplot()
-    
+
       print(p)
       
       
@@ -315,7 +318,24 @@ shinyServer(function(input, output){
       )
     }
     
-    lapply(split(df$value,df$variable),RcmdrMisc::numSummary)
+    sumry <- lapply(split(df$value,df$variable),RcmdrMisc::numSummary)
+    se <- sumry[[1]][[2]][,"sd"] / sqrt(sumry[[1]]$n)
+    ci.lower <- sumry[[1]][[2]][,"mean"] - 1.96 * se
+    names(ci.lower) <- "CI.lower"
+    
+    ci.upper <- sumry[[1]][[2]][,"mean"] + 1.96 * se
+    names(ci.upper) <- "CI.upper"
+    sumry[[1]]$table <- cbind(sumry[[1]]$table, ci.lower,ci.upper)
+    
+    se <- sumry[[2]][[2]][,"sd"] / sqrt(sumry[[1]]$n)
+    ci.lower <- sumry[[2]][[2]][,"mean"] - 1.96 * se
+    names(ci.lower) <- "CI.lower"
+    
+    ci.upper <- sumry[[2]][[2]][,"mean"] + 1.96 * se
+    names(ci.upper) <- "CI.upper"
+    sumry[[2]]$table <- cbind(sumry[[2]]$table, ci.lower,ci.upper)
+    
+    sumry
 
   })
   
