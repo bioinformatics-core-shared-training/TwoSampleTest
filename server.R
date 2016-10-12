@@ -193,7 +193,7 @@ shinyServer(function(input, output){
       p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot(alpha=0.5) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
     }
 
-    if(input$showCI) p <- p + stat_summary(fun.data="mean_cl_normal",colour="red",fun.args = list(mult=1.96))
+#    if(input$showCI) p <- p + stat_summary(fun.data="mean_cl_normal",colour="red",fun.args = list(mult=1.96),geom="errorbarh")
     
     print(p)
     

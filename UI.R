@@ -69,7 +69,7 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                             min = 1,
                                             max = 50,
                                             value = 30),
-                                checkboxInput("showCI", "Show Confidence Interval",value = FALSE),
+#                                checkboxInput("showCI", "Show Confidence Interval",value = FALSE),
                                 checkboxInput("sameScale","Use same scale on x-axis for both groups",value=FALSE)
 
                                 
