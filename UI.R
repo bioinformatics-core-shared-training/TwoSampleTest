@@ -17,7 +17,7 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                         
                                         br(),
                                         br(),
-                                        a("View source Code for app", href="https://github.com/bioinformatics-core-shared-training/OneSampleTest.git")
+                                        a("View source Code for app", href="https://github.com/bioinformatics-core-shared-training/TwoSampleTest.git")
                               )
                             )
                             
@@ -124,14 +124,15 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                            
                                            
                               ),
-                              mainPanel(h4("F test for differences in variance"),
-                                        helpText("F test to compare the variances of two samples from normal populations"),
-                                        helpText("WARNING: Please use the result of this test with caution. Sometimes you can better judge differences in variance by inspecting the data distribution"),
-                                        verbatimTextOutput("vartest"),
+                              mainPanel(
                                         h4("Two-sample test"),
                                         verbatimTextOutput("ttest"),
                                         helpText("If you have chosen a Parametric test, the comparison of the calculated test-statistic to the reference distribution will be shown here"),
-                                        plotOutput("tdist")
+                                        plotOutput("tdist"),
+                                        h4("F test for differences in variance"),
+                                        helpText("F test to compare the variances of two samples from normal populations"),
+                                        helpText("WARNING: Please use the result of this test with caution. Sometimes you can better judge differences in variance by inspecting the data distribution"),
+                                        verbatimTextOutput("vartest")
                                         )
                               
                               
