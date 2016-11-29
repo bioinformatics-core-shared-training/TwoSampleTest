@@ -44,13 +44,18 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                            h2("Are your samples paired?"),
                                            helpText("If your two groups are dependent, you should choose a paired test. If your groups are independant, leave this box un-ticked"),
                                            checkboxInput('paired', 'Paired Samples?', FALSE),
+                                           
+                                           h2("Direction of comparison"),
+                                           radioButtons("testDirection", "What comparison do you want to make?",c("A vs B", "B vs A")),
+                                           helpText("If A vs B is selected, the difference will be the first column minus the second. Selecting B vs A will compute the second column minus the first"),
+                                           
                                            helpText("You can choose to transform the data prior to statistical testing"),
                                            radioButtons("transform","Transformation",c("None"="none","Log10"="log.10","Log2"="log.2","Natural Log"="log"),"none")
                                            
                                            
                               )
                               ,
-                              mainPanel(dataTableOutput("mytable")
+                              mainPanel(verbatimTextOutput("testDirection"),dataTableOutput("mytable")
                               )
                               
                             )
@@ -120,8 +125,7 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                            helpText("Note that changing this option will have no effect for a non-parametric test"),
                                            br(),
                                            helpText(""),
-                                           radioButtons("alternative", "Alternative", c("Two-sided"="two.sided", "Greater" = "greater", "Lower"="less"),"two.sided")
-                                           
+                                           radioButtons("alternative", "Alternative", c("Two-sided"="two.sided", "Greater" = "greater", "Lower"="less"),"two.sided")                                
                                            
                               ),
                               mainPanel(

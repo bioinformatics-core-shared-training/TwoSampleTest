@@ -9,43 +9,51 @@ shinyServer(function(input, output){
   data <- reactive({inFile <- input$file1
   
                     if (is.null(inFile))
-                    return(structure(list(variable = structure(c(1L, 1L, 1L, 1L, 1L, 1L, 
-                                                                 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 
-                                                                 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
-                                                                 2L, 2L), .Label = c("Breed.A", "Breed.B"), class = "factor"), 
-                                          value = c(20.77, 9.08, 9.8, 8.13, 16.54, 11.36, 11.47, 12.1, 
-                                                    14.04, 16.82, 6.32, 17.51, 9.87, 12.41, 7.39, 9.23, 4.06, 
-                                                    8.26, 10.24, 14.64, 15.51, 12.93, 11.5, 16.07, 15.51, 17.66, 
-                                                    11.25, 13.65, 14.28, 13.21, 10.28, 12.41, 9.63, 14.75, 9.81, 
-                                                    13.02, 12.33, 11.9, 8.98, 11.29)), row.names = c(NA, -40L
-                                                    ), .Names = c("variable", "value"), class = "data.frame"))
+                    return(data.frame(A = c(20.77,9.08,9.8,8.13,16.54,11.36,11.47,12.1,14.04,16.82,6.32,17.51,9.87,12.41,7.39,9.23,4.06,8.26,10.24,14.64),
+                                      B=c(15.51,12.93,11.5,16.07,15.51,17.66,11.25,13.65,14.28,13.21,10.28,12.41,9.63,14.75,9.81,13.02,12.33,11.9,8.98,11.29)))
                     #print(inFile$datapath)
                     data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
                     #read.csv("GraphPad Course Data/diseaseX.csv")
                     
-                    if(!input$factors) data <- melt(data)
-                    colnames(data) <- c("variable","value")
+                    if(input$factors) {
+                    
+                      colnames(data) <- c("variable","value")
+                      data <- data[order(data[,1]),]
+                      data$Index <- c(1:table(data[,1])[1], 1:table(data[,1])[2])
+                      data <- spread(data,variable,value)
+                      data <- data[,2:3]
+                    } 
+                    
                     data
   })
 
-  
+  output$testDirection = renderText({
+    df <- data()
+    if(input$testDirection == "A vs B") text <- paste("Comparison will be made in the direction", colnames(df)[1], "versus", colnames(df[2]))
+    else text <- paste("Comparison will be made in the direction", colnames(df)[2], "versus", colnames(df[1]))
+    text
+  })
   output$mytable= renderDataTable({
     df <- data()
-    
+
     if(!input$transform =="none"){
       
-      df$value <- switch(input$transform,
-                             log.2 = log2(df$value),
-                             log.10 = log10(df$value),
-                             log = log(df$value)
+      df<- switch(input$transform,
+                             log.2 = log2(df),
+                             log.10 = log10(df),
+                             log = log(df)
       )
     }
     
     
     if(input$paired){
       
-      newDf <- data.frame(do.call(cbind,split(df$value,df$variable)))
-      newDf$Difference=newDf[,1] - newDf[,2]
+      newDf <- df
+      
+      if(input$testDirection == "A vs B") {
+        newDf$Difference=newDf[,1] - newDf[,2]
+      } else newDf$Difference=newDf[,2] - newDf[,1]
+      
       newDf$Sign <- "="
       newDf$Sign[newDf$Difference > 0] <- "+"
       newDf$Sign[newDf$Difference < 0] <- "-"
@@ -64,18 +72,17 @@ shinyServer(function(input, output){
     
     if(!input$transform =="none"){
       
-      df$value <- switch(input$transform,
-                         log.2 = log2(df$value),
-                         log.10 = log10(df$value),
-                         log = log(df$value)
+      df <- switch(input$transform,
+                         log.2 = log2(df),
+                         log.10 = log10(df),
+                         log = log(df)
       )
     }
     
-    dl <- split(df,df$variable)
-    df1 <- dl[[1]]
-    df2 <- dl[[2]]
+    df1 <- data.frame(value=df[,1],variable="X")
+    df2 <- data.frame(value=df[,2],variable="X")
     
-    lims <- range(df$value)
+    lims <- range(c(df[,1],df[,2]))
     
     if(input$default.bins){
       
@@ -140,14 +147,16 @@ shinyServer(function(input, output){
     )
   }
   
-  dl <- split(df,df$variable)
-  df1 <- dl[[1]]
-  df2 <- dl[[2]]
+
+  df1 <- df[,1]
+  df2 <- df[,2]
 
   if(input$paired){
 
-    newDf <- do.call(cbind,split(df$value,df$variable))
-    df <- data.frame(X=newDf[,1] - newDf[,2])
+    
+    if (input$testDirection == "A vs B") {
+      df <- data.frame(X=df[,1] - df[,2])
+    } else df <- data.frame(X=df[,2] - df[,1])
     
     if(input$default.bins.paired){
       brx <- pretty(range(df$X), 
@@ -172,7 +181,7 @@ shinyServer(function(input, output){
   output$boxplot<- renderPlot({
     
     df <- data()
-    
+    df <- melt(df)
     if(!input$transform =="none"){
       
       df$value <- switch(input$transform,
@@ -212,18 +221,13 @@ shinyServer(function(input, output){
                          log = log(df$value)
       )
     }
-    dl <- split(df,df$variable)
-    df1 <- dl[[1]]
-    df2 <- dl[[2]]
-    
+
     if(input$paired){
       
-      newDf <- do.call(cbind,split(df$value,df$variable))
-      df <- data.frame(value=newDf[,1] - newDf[,2],variable="Difference")
+      if(input$testDirection == "A vs B") {
+      df <- data.frame(value=df[,1] - df[,2],variable="Difference")
+      } else       df <- data.frame(value=df[,2] - df[,1],variable="Difference")
 
-    #datacol1 <- as.numeric(input$dataCol1)
-    #datacol2 <- as.numeric(input$dataCol2)
-    
     #mdf <- melt(df[,c(datacol1,datacol2)])
     
       if(input$violin.paired){
@@ -255,7 +259,7 @@ shinyServer(function(input, output){
     }
     
     
-    var.test(value~variable,data=df)
+    var.test(df[,1],df[,2])
     }
   
   )
@@ -278,32 +282,47 @@ shinyServer(function(input, output){
     
     #X <- df[,datacol1]
     #Y <- df[,datacol2]
+    
     alternative = input$alternative
     paired <- as.logical(input$paired)
     var.equal <- as.logical(input$var.equal)    
-    if(input$do.parametric) t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+    if(input$testDirection == "B vs A") {
+      
+      df2 <- data.frame(df[,2],df[,1])
+      df <- df2
+    
+    }
+    if(input$do.parametric) t.test(df[,1],df[,2],alternative=alternative,paired=paired,var.equal=var.equal)
     else {
       
       if(paired){
       
-        if (input$symmetrical) wilcox.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+        if (input$symmetrical) wilcox.test(df[,1],df[,2],alternative=alternative,paired=paired,var.equal=var.equal)
         else{
-          nms <- levels(df$variable)
-          df2 <- data.frame(X = df$value[df$variable==nms[1]], Y = df$value[df$variable==nms[2]])
-          npos <- sum(df2[,1]>df2[,2])
-          nneg <- sum(df2[,1] < df2[,2])
+          if(input$testDirection == "B vs A") {
+            
+            df2 <- data.frame(df[,2],df[,1])
+            df <- df2
+            
+          }
+            
+          npos <- sum(df[,1]>df[,2])
+          nneg <- sum(df[,1] < df[,2])
           x <- min(npos,nneg)
-          n <- sum(df2[,1] != df2[,2])
+          n <- sum(df[,1] != df[,2])
 
           cat(paste("Number of +'s", npos,"\n"))
           cat(paste("Number of -'s", nneg,"\n"))
           cat(paste("Test statistic:", x,"\n"))
           pv <- round(pbinom(q = x, size = n,prob = 0.5)*2,3)
+          
+          if(input$alternative != "two.sided") pv <- pv/2
+          
           cat(paste("P-value using binomial distribution with",n, "trials and p=0.5:",pv,"\n"))
           
         }
       } 
-      else wilcox.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+      else wilcox.test(df[,1],df[,2],alternative=alternative,paired=paired,var.equal=var.equal)
     }
   })
 
@@ -317,6 +336,7 @@ shinyServer(function(input, output){
                          log = log(df$value)
       )
     }
+    df <- melt(df)
     
     sumry <- lapply(split(df$value,df$variable),RcmdrMisc::numSummary)
     se <- sumry[[1]][[2]][,"sd"] / sqrt(sumry[[1]]$n)
@@ -365,7 +385,13 @@ shinyServer(function(input, output){
       alternative = input$alternative
       paired <- as.logical(input$paired)
       var.equal <- as.logical(input$var.equal)    
-      tt <- t.test(value~variable,data=df,alternative=alternative,paired=paired,var.equal=var.equal)
+      if(input$testDirection == "B vs A") {
+        
+        df2 <- data.frame(df[,2],df[,1])
+        df <- df2
+        
+      }
+      tt <- t.test(df[,1], df[,2],alternative=alternative,paired=paired,var.equal=var.equal)
   
       tstat <- tt$statistic
       degfree <- tt$parameter
