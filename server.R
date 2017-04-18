@@ -4,6 +4,8 @@ library(reshape2)
 library(gridExtra)
 library(pastecs)
 library(tidyr)
+library(dplyr)
+
 shinyServer(function(input, output){
   
   data <- reactive({inFile <- input$file1
@@ -80,7 +82,9 @@ shinyServer(function(input, output){
     }
     
     df1 <- data.frame(value=df[,1],variable="X")
+    df1 <- df1[!is.na(df[,1]),]
     df2 <- data.frame(value=df[,2],variable="X")
+    df2 <- df2[!is.na(df2[,1]),]
     
     lims <- range(c(df[,1],df[,2]))
     
