@@ -157,12 +157,11 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                 helpText("We recommend RStudio to run the R code and compile a pdf or HTML report that will show the results of your analysis along with the code used"),
                                 img(src="https://www.rstudio.com/wp-content/uploads/2014/03/blue-125.png"), br(),a("RStudio",href="https://www.rstudio.com/"),br(),
                                 strong("The input file that you are analysing must be in your R working directory in order for the script to run"),
-                                helpText("In order to compile the report in RStudio, you will need to install the ggplot2, rmarkdown, reshape2,gridExtra and knitr packages"),br(),
-                                code("install.packages(c('knitr','ggplot2','rmarkdown,'reshape2','gridExtra'))"),
-                                br(),
+                                helpText("In order to compile the report in RStudio, you will need to install the ggplot2 package"),
+                                code("install.packages('ggplot2'))"),
+                                p(),
                                 downloadLink('downloadScript', 'Download R Script'),
-                                br(),
-                                br(),
+                                p(),
                                 downloadLink('downloadMarkdown', 'Download R Markdown file')
                                 
                               )
