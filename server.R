@@ -2,9 +2,7 @@ library(shiny)
 library(ggplot2)
 library(reshape2)
 library(gridExtra)
-#library(pastecs)
 library(tidyr)
-#library(dplyr)
 
 shinyServer(function(input, output){
   
