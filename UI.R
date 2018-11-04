@@ -7,7 +7,7 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                    
                    tabPanel("About",
                             sidebarLayout(
-                              sidebarPanel(img(src="cruk-cambridge-institute.jpg",width=350,height=77), br(),a("cruk.cam.ac.uk",href="www.cruk.cam.ac.uk")),
+                              sidebarPanel(img(src="cruk-cambridge-institute.jpg",width=350,height=77), br(),a("cruk.cam.ac.uk",href="http://www.cruk.cam.ac.uk",target="_blank")),
                               mainPanel(helpText("This app was developed by the Bioinformatics Core of Cancer Research Uk Cambridge Institute to accompany a training course. On the course webpage you will find lecture notes from the course and practical exercises that use this app"),
                                         a("Introduction to Statistical Analysis",href="http://bioinformatics-core-shared-training.github.io/IntroductionToStats/"),
                                         br(),
