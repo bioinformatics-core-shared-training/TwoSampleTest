@@ -338,27 +338,25 @@ shinyServer(function(input, output){
       )
     }
 
-#    df %>%
-#      gather(variable, value, factor_key = TRUE) %>%
-#      group_by(variable) %>%
-#      summarise_all(funs(
-#        n(),
-#        mean,
-#        sd,
-#        IQR,
-#        `0%` = quantile(., 0),
-#        `25%` = quantile(., 0.25),
-#        `50%` = quantile(., 0.5),
-#        `75%` = quantile(., 0.75),
-#        `100%` = quantile(., 1.0)
-#      )) %>%
-#      mutate(ci.lower = mean - 1.96 * sd / sqrt(n)) %>%
-#      mutate(ci.upper = mean + 1.96 * sd / sqrt(n)) %>%
-#      as.data.frame() %>%
-#      column_to_rownames(var = "variable") %>%
-#      print(row.names = TRUE, digits = 4)
-
-		"Hi Matt"
+    df %>%
+      gather(variable, value, factor_key = TRUE) %>%
+      group_by(variable) %>%
+      summarise_all(funs(
+        n(),
+        mean,
+        sd,
+        IQR,
+        `0%` = quantile(., 0),
+        `25%` = quantile(., 0.25),
+        `50%` = quantile(., 0.5),
+        `75%` = quantile(., 0.75),
+        `100%` = quantile(., 1.0)
+      )) %>%
+      mutate(ci.lower = mean - 1.96 * sd / sqrt(n)) %>%
+      mutate(ci.upper = mean + 1.96 * sd / sqrt(n)) %>%
+      as.data.frame() %>%
+      column_to_rownames(var = "variable") %>%
+      print(row.names = TRUE, digits = 4)
   })
   
   output$adv.summary <- renderPrint({
