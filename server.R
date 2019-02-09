@@ -1,8 +1,7 @@
+library(tidyverse)
 library(shiny)
-library(ggplot2)
 library(reshape2)
 library(gridExtra)
-library(tidyr)
 
 shinyServer(function(input, output){
   
@@ -338,27 +337,28 @@ shinyServer(function(input, output){
                          log = log(df$value)
       )
     }
-    df <- melt(df)
-    
-    sumry <- lapply(split(df$value,df$variable),RcmdrMisc::numSummary)
-    se <- sumry[[1]][[2]][,"sd"] / sqrt(sumry[[1]]$n)
-    ci.lower <- sumry[[1]][[2]][,"mean"] - 1.96 * se
-    names(ci.lower) <- "CI.lower"
-    
-    ci.upper <- sumry[[1]][[2]][,"mean"] + 1.96 * se
-    names(ci.upper) <- "CI.upper"
-    sumry[[1]]$table <- cbind(sumry[[1]]$table, ci.lower,ci.upper)
-    
-    se <- sumry[[2]][[2]][,"sd"] / sqrt(sumry[[1]]$n)
-    ci.lower <- sumry[[2]][[2]][,"mean"] - 1.96 * se
-    names(ci.lower) <- "CI.lower"
-    
-    ci.upper <- sumry[[2]][[2]][,"mean"] + 1.96 * se
-    names(ci.upper) <- "CI.upper"
-    sumry[[2]]$table <- cbind(sumry[[2]]$table, ci.lower,ci.upper)
-    
-    sumry
 
+#    df %>%
+#      gather(variable, value, factor_key = TRUE) %>%
+#      group_by(variable) %>%
+#      summarise_all(funs(
+#        n(),
+#        mean,
+#        sd,
+#        IQR,
+#        `0%` = quantile(., 0),
+#        `25%` = quantile(., 0.25),
+#        `50%` = quantile(., 0.5),
+#        `75%` = quantile(., 0.75),
+#        `100%` = quantile(., 1.0)
+#      )) %>%
+#      mutate(ci.lower = mean - 1.96 * sd / sqrt(n)) %>%
+#      mutate(ci.upper = mean + 1.96 * sd / sqrt(n)) %>%
+#      as.data.frame() %>%
+#      column_to_rownames(var = "variable") %>%
+#      print(row.names = TRUE, digits = 4)
+
+		"Hi Matt"
   })
   
   output$adv.summary <- renderPrint({
