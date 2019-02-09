@@ -1,7 +1,4 @@
-####shiny::runGitHub("OneSidedT","markdunning")
-
 library(shiny)
-
 
 shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                    
