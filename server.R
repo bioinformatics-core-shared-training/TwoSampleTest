@@ -25,25 +25,32 @@ shinyServer(function(input, output){
                     data
   })
 
+  transformedData <- reactive({
+
+		df <- data()
+
+    if (input$transform != "none") {
+      df <- switch(input$transform,
+                   log.2 = log2(df),
+                   log.10 = log10(df),
+                   log = log(df)
+      )
+    }
+
+    df
+  })
+
   output$testDirection = renderText({
     df <- data()
     if(input$testDirection == "A vs B") text <- paste("Comparison will be made in the direction", colnames(df)[1], "versus", colnames(df[2]))
     else text <- paste("Comparison will be made in the direction", colnames(df)[2], "versus", colnames(df[1]))
     text
   })
-  output$mytable= renderDataTable({
-    df <- data()
 
-    if(!input$transform =="none"){
-      
-      df<- switch(input$transform,
-                             log.2 = log2(df),
-                             log.10 = log10(df),
-                             log = log(df)
-      )
-    }
-    
-    
+  output$mytable= renderDataTable({
+
+    df <- transformedData()
+
     if(input$paired){
       
       newDf <- df
@@ -66,16 +73,7 @@ shinyServer(function(input, output){
 
   output$histogram<- renderPlot({
     
-    df <- data()
-    
-    if(!input$transform =="none"){
-      
-      df <- switch(input$transform,
-                         log.2 = log2(df),
-                         log.10 = log10(df),
-                         log = log(df)
-      )
-    }
+    df <- transformedData()
     
     df1 <- data.frame(value=df[,1],variable="X")
     df1 <- df1[!is.na(df[,1]),]
@@ -136,17 +134,7 @@ shinyServer(function(input, output){
   
   output$histogram.paired <- renderPlot({
     
-  df <- data()
-  
-  if(!input$transform =="none"){
-    
-    df$value <- switch(input$transform,
-                       log.2 = log2(df$value),
-                       log.10 = log10(df$value),
-                       log = log(df$value)
-    )
-  }
-  
+  df <- transformedData()
 
   df1 <- df[,1]
   df2 <- df[,2]
@@ -180,21 +168,9 @@ shinyServer(function(input, output){
   
   output$boxplot<- renderPlot({
     
-    df <- data()
+    df <- transformedData()
+
     df <- melt(df)
-    if(!input$transform =="none"){
-      
-      df$value <- switch(input$transform,
-                         log.2 = log2(df$value),
-                         log.10 = log10(df$value),
-                         log = log(df$value)
-      )
-    }
-    
-    #datacol1 <- as.numeric(input$dataCol1)
-    #datacol2 <- as.numeric(input$dataCol2)
-    
-   #mdf <- melt(df[,c(datacol1,datacol2)])
     
     if(input$violin){
       p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_violin(alpha=0.75) + geom_boxplot(fill="white",width=0.1) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_x_discrete(limits = rev(levels(df$variable))) + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
@@ -211,16 +187,7 @@ shinyServer(function(input, output){
   
   output$boxplot.paired<- renderPlot({
     
-    df <- data()
-    
-    if(!input$transform =="none"){
-      
-      df$value <- switch(input$transform,
-                         log.2 = log2(df$value),
-                         log.10 = log10(df$value),
-                         log = log(df$value)
-      )
-    }
+    df <- transformedData()
 
     if(input$paired){
       
@@ -239,47 +206,19 @@ shinyServer(function(input, output){
     } else p <- ggplot()
 
       print(p)
-      
-      
-  }
-  )
+  })
 
   output$vartest <-renderPrint({
-    df <- data()
-    #datacol1 <- as.numeric(input$dataCol1)
-    #datacol2 <- as.numeric(input$dataCol2)
-    
-    if(!input$transform =="none"){
-      
-      df$value <- switch(input$transform,
-                         log.2 = log2(df$value),
-                         log.10 = log10(df$value),
-                         log = log(df$value)
-      )
-    }
-    
-    
+
+    df <- transformedData()
+ 
     var.test(df[,1],df[,2])
-    }
-  
-  )
-  
-  
-  
+  })
+
   output$ttest <-renderPrint({
-    df <- data()
-    #datacol1 <- as.numeric(input$dataCol1)
-    #datacol2 <- as.numeric(input$dataCol2)
-    
-    if(!input$transform =="none"){
-      
-      df$value <- switch(input$transform,
-                         log.2 = log2(df$value),
-                         log.10 = log10(df$value),
-                         log = log(df$value)
-      )
-    }
-    
+
+    df <- transformedData()
+ 
     alternative = input$alternative
     paired <- as.logical(input$paired)
     var.equal <- as.logical(input$var.equal)    
@@ -307,15 +246,8 @@ shinyServer(function(input, output){
   })
 
   output$summary <- renderPrint({
-    df <- data()
-    if(!input$transform =="none"){
-      
-      df$value <- switch(input$transform,
-                         log.2 = log2(df$value),
-                         log.10 = log10(df$value),
-                         log = log(df$value)
-      )
-    }
+
+    df <- transformedData()
 
     df %>%
       gather(variable, value, factor_key = TRUE) %>%
@@ -338,29 +270,12 @@ shinyServer(function(input, output){
       print(row.names = TRUE, digits = 4)
   })
   
-  output$adv.summary <- renderPrint({
-    df <- data()
-    by(df$value,df$variable,stat.desc,basic=FALSE,norm=TRUE)
-  })
-  
   output$tdist <- renderPlot({
   
     if(input$do.parametric){
-    
-      df <- data()
-      if(!input$transform =="none"){
-        
-        df$value <- switch(input$transform,
-                           log.2 = log2(df$value),
-                           log.10 = log10(df$value),
-                           log = log(df$value)
-        )
-      }
-      #datacol1 <- as.numeric(input$dataCol1)
-      #datacol2 <- as.numeric(input$dataCol2)
-      
-      #X <- df[,datacol1]
-      #Y <- df[,datacol2]
+
+      df <- transformedData()
+ 
       alternative = input$alternative
       paired <- as.logical(input$paired)
       var.equal <- as.logical(input$var.equal)    
