@@ -91,7 +91,7 @@ shinyServer(function(input, output){
       brx <- pretty(range(df1$value), 
                     n = nclass.Sturges(df1$value),min.n = 1)
 
-      p1 <- ggplot(df1, aes(x=value)) + geom_histogram(breaks=brx,colour="black", fill=rgb(29,0,150,maxColorValue=255),alpha=0.5) + ylab("") 
+      p1 <- ggplot(df1, aes(x=value)) + geom_histogram(breaks=brx,colour="black", fill=rgb(29,0,150,maxColorValue=255),alpha=0.75) + ylab("") 
       
       if(input$sameScale) p1 <- p1 + xlim(lims)
       
@@ -99,7 +99,7 @@ shinyServer(function(input, output){
       brx <- pretty(range(df2$value), 
                     n = nclass.Sturges(df2$value),min.n = 1)
       
-      p2 <- ggplot(df2, aes(x=value)) + geom_histogram(breaks=brx,colour="black", fill=rgb(236,0,140,maxColorValue=255),alpha=0.5) + ylab("") 
+      p2 <- ggplot(df2, aes(x=value)) + geom_histogram(breaks=brx,colour="black", fill=rgb(236,0,140,maxColorValue=255),alpha=0.75) + ylab("") 
       
       if(input$sameScale) p2 <- p2 + xlim(lims)
       
@@ -198,9 +198,9 @@ shinyServer(function(input, output){
    #mdf <- melt(df[,c(datacol1,datacol2)])
     
     if(input$violin){
-      p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_violin(alpha=0.5) + geom_boxplot(fill="white",width=0.1) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
+      p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_violin(alpha=0.75) + geom_boxplot(fill="white",width=0.1) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_x_discrete(limits = rev(levels(df$variable))) + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
     } else{
-      p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot(alpha=0.5) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
+      p <- ggplot(df, aes(x = variable,y=value,fill=variable)) + geom_boxplot(alpha=0.75) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() + scale_x_discrete(limits = rev(levels(df$variable))) + scale_fill_manual(values=c(rgb(29,0,150,maxColorValue=255), rgb(236,0,140,maxColorValue=255)))
     }
 
 #    if(input$showCI) p <- p + stat_summary(fun.data="mean_cl_normal",colour="red",fun.args = list(mult=1.96),geom="errorbarh")
@@ -232,9 +232,9 @@ shinyServer(function(input, output){
     #mdf <- melt(df[,c(datacol1,datacol2)])
     
       if(input$violin.paired){
-        p <- ggplot(df, aes(x = variable,y=value)) + geom_violin(fill=rgb(236,0,140,maxColorValue=255)) + geom_boxplot(fill="white",width=0.1) + geom_jitter(position = position_jitter(width = .05)) + coord_flip()
+        p <- ggplot(df, aes(x = variable,y=value)) + geom_violin(fill=rgb(236,0,140,maxColorValue=255), alpha = 1.0) + geom_boxplot(fill="white",width=0.1) + geom_jitter(position = position_jitter(width = .05)) + coord_flip()
       } else{
-        p <- ggplot(df, aes(x = variable,y=value)) + geom_boxplot(fill=rgb(236,0,140,maxColorValue=255)) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() 
+        p <- ggplot(df, aes(x = variable,y=value)) + geom_boxplot(fill=rgb(236,0,140,maxColorValue=255), alpha = 1.0) + geom_jitter(position = position_jitter(width = .05)) + coord_flip() 
         }
       
     } else p <- ggplot()
