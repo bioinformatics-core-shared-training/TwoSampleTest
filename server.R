@@ -281,50 +281,30 @@ shinyServer(function(input, output){
       )
     }
     
-    #X <- df[,datacol1]
-    #Y <- df[,datacol2]
-    
     alternative = input$alternative
     paired <- as.logical(input$paired)
     var.equal <- as.logical(input$var.equal)    
-    if(input$testDirection == "B vs A") {
-      
-      df2 <- data.frame(df[,2],df[,1])
-      df <- df2
-    
-    }
-    if(input$do.parametric) t.test(df[,1],df[,2],alternative=alternative,paired=paired,var.equal=var.equal)
-    else {
-      
-      if(paired){
-      
-        if (input$symmetrical) wilcox.test(df[,1],df[,2],alternative=alternative,paired=paired,var.equal=var.equal)
-        else{
-          if(input$testDirection == "B vs A") {
-            
-            df2 <- data.frame(df[,2],df[,1])
-            df <- df2
-            
-          }
-            
-          npos <- sum(df[,1]>df[,2])
-          nneg <- sum(df[,1] < df[,2])
-          x <- min(npos,nneg)
-          n <- sum(df[,1] != df[,2])
 
-          cat(paste("Number of +'s", npos,"\n"))
-          cat(paste("Number of -'s", nneg,"\n"))
-          cat(paste("Test statistic:", x,"\n"))
-          pv <- round(pbinom(q = x, size = n,prob = 0.5)*2,3)
-          
-          if(input$alternative != "two.sided") pv <- pv/2
-          
-          cat(paste("P-value using binomial distribution with",n, "trials and p=0.5:",pv,"\n"))
-          
-        }
-      } 
-      else wilcox.test(df[,1],df[,2],alternative=alternative,paired=paired,var.equal=var.equal)
+    A <- unlist(df[,1], use.names = FALSE)
+    B <- unlist(df[,2], use.names = FALSE)
+    
+    if (input$testDirection == "A vs B") {
+
+      if (input$do.parametric) {
+        t.test(A, B, alternative = alternative, paired = paired, var.equal = var.equal)
+      } else {
+        wilcox.test(A, B, alternative = alternative, paired = paired, var.equal = var.equal)
+      }
+
+    } else {
+
+      if (input$do.parametric) {
+        t.test(B, A, alternative = alternative, paired = paired, var.equal = var.equal)
+      } else {
+        wilcox.test(B, A, alternative = alternative, paired = paired, var.equal = var.equal)
+      }
     }
+
   })
 
   output$summary <- renderPrint({
