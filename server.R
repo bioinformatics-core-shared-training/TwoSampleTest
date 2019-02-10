@@ -10,9 +10,8 @@ shinyServer(function(input, output){
                     if (is.null(inFile))
                     return(data.frame(A = c(20.77,9.08,9.8,8.13,16.54,11.36,11.47,12.1,14.04,16.82,6.32,17.51,9.87,12.41,7.39,9.23,4.06,8.26,10.24,14.64),
                                       B=c(15.51,12.93,11.5,16.07,15.51,17.66,11.25,13.65,14.28,13.21,10.28,12.41,9.63,14.75,9.81,13.02,12.33,11.9,8.98,11.29)))
-                    #print(inFile$datapath)
-                    data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
-                    #read.csv("GraphPad Course Data/diseaseX.csv")
+
+                    data <- as.data.frame(read_csv(inFile$datapath))
                     
                     if(input$factors) {
                     
@@ -323,14 +322,14 @@ shinyServer(function(input, output){
       group_by(variable) %>%
       summarise_all(funs(
         n(),
-        mean,
-        sd,
-        IQR,
-        `0%` = quantile(., 0),
-        `25%` = quantile(., 0.25),
-        `50%` = quantile(., 0.5),
-        `75%` = quantile(., 0.75),
-        `100%` = quantile(., 1.0)
+        mean(., na.rm = TRUE),
+        sd(., na.rm = TRUE),
+        IQR(., na.rm = TRUE),
+        `0%` = quantile(., 0, na.rm = TRUE),
+        `25%` = quantile(., 0.25, na.rm = TRUE),
+        `50%` = quantile(., 0.5, na.rm = TRUE),
+        `75%` = quantile(., 0.75, na.rm = TRUE),
+        `100%` = quantile(., 1.0, na.rm = TRUE)
       )) %>%
       mutate(ci.lower = mean - 1.96 * sd / sqrt(n)) %>%
       mutate(ci.upper = mean + 1.96 * sd / sqrt(n)) %>%
@@ -417,33 +416,27 @@ shinyServer(function(input, output){
       paste(input$outfile, '.R', sep='')
     },
     content = function(file) {
+
+      cat(file = file, as.name("library(tidyverse)\n"))
+
       inFile <- input$file1
-      message(inFile)
-      if(is.null(inFile)){
-        
-        cat(file=file,as.name("data <- data.frame(variable=c(rep('Breed.A',20),rep('Breed.B',20)),value=c(20.77,9.08,9.8,8.13,16.54,11.36,11.47,12.1,14.04,16.82,6.32,17.51,9.87,12.41,
-                                                                                               7.39,9.23,4.06,8.26,10.24,14.64,15.51,12.93,11.5,16.07,15.51,17.66,11.25,13.65,
-                                                                                               14.28,13.21,10.28,12.41,9.63,14.75,9.81,13.02,12.33,11.9,8.98,11.29))\n"))
-        message("Writing to file.....")
+
+      if (is.null(inFile)) {
+
+        cat(file = file, as.name("data <- data.frame(variable=c(rep('Breed.A',20),rep('Breed.B',20)),value=c(20.77,9.08,9.8,8.13,16.54,11.36,11.47,12.1,14.04,16.82,6.32,17.51,9.87,12.41,7.39,9.23,4.06,8.26,10.24,14.64,15.51,12.93,11.5,16.07,15.51,17.66,11.25,13.65,14.28,13.21,10.28,12.41,9.63,14.75,9.81,13.02,12.33,11.9,8.98,11.29))\n"), append = TRUE)
+
       } else {
-      
-        cat(file=file,as.name(paste0('myfile <- \"' , inFile$name, '\"\n')))
-        cat(file=file,as.name(paste0('sep <- \'', input$sep,'\'','\n')),append=TRUE)
-        cat(file=file,as.name(paste0('quote <- \'', input$quote,'\'','\n')),append=TRUE)
-        cat(file=file,as.name(paste('header <- ', input$header,'\n')),append=TRUE)
-        cat(file=file,as.name(paste('skip <- ', input$skip,'\n')),append=TRUE)
-        cat(file=file,as.name("data <- read.csv(myfile, header=header, sep=sep, quote=quote,skip=skip)\n"),append=TRUE)
+
+        cat(file = file, as.name(paste0('myfile <- \"' , inFile$name, '\"\n')), append = TRUE)
+        cat(file = file, as.name("data <- as.data.frame(read_csv(myfile))\n"), append = TRUE)
+
         if(!input$factors) cat(file=file,as.name("data <- reshape2::melt(data)\n"),append=TRUE)
         cat(file=file,as.name("colnames(data) <- c('variable','value')\n"),append=TRUE)
-        
-        }
-    
-      
+      }
+
       cat(file=file,as.name("head(data)\n"),append=TRUE)
-      cat(file=file,as.name("library(ggplot2)\n"),append=TRUE)
       cat(file=file,as.name("p <- ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()\n"),append=TRUE)
-      
-      
+ 
       if(input$paired){
         cat(file=file,as.name("df <- data.frame(data, Observation = rep(1:(nrow(data)/2),2))\n"),append=TRUE)
         
@@ -457,7 +450,6 @@ shinyServer(function(input, output){
       
       cat(file=file,as.name("p <- ggplot(data, aes(x=value)) + geom_histogram(aes(y=..density..),colour='black',fill='white') + facet_wrap(~variable) + stat_function(fun=dnorm,color='red',args=list(mean=mean(data$value), sd=sd(data$value)))\n"),append=TRUE)
       cat(file=file,as.name("var.test(value~variable,data=data)\n"),append=TRUE)
-      
       
       if(input$paired){
         cat(file=file,as.name("newDf <- do.call(cbind,split(data$value,data$variable))\n"),append=TRUE)
@@ -485,29 +477,27 @@ shinyServer(function(input, output){
       paste(input$outfile, '.Rmd', sep='')
     },
     content = function(file) {
-      inFile <- input$file1
-      script <- gsub(".Rmd", ".R",file)
-      if(is.null(inFile)){
-        
-        cat(file=script,as.name("data <- data.frame(variable=c(rep('Breed.A',20),rep('Breed.B',20)),value=c(20.77,9.08,9.8,8.13,16.54,11.36,11.47,12.1,14.04,16.82,6.32,17.51,9.87,12.41,
-                                                                                               7.39,9.23,4.06,8.26,10.24,14.64,15.51,12.93,11.5,16.07,15.51,17.66,11.25,13.65,
-                                                                                               14.28,13.21,10.28,12.41,9.63,14.75,9.81,13.02,12.33,11.9,8.98,11.29))\n"))
 
-      } else{
-      
-        cat(file=script,as.name(paste0('myfile <- \"' , inFile$name, '\"\n')))
-        cat(file=script,as.name(paste0('sep <- \'', input$sep,'\'','\n')),append=TRUE)
-        cat(file=script,as.name(paste0('quote <- \'', input$quote,'\'','\n')),append=TRUE)
-        cat(file=script,as.name(paste('header <- ', input$header,'\n')),append=TRUE)
-        cat(file=script,as.name(paste('skip <- ', input$skip,'\n')),append=TRUE)
-        cat(file=script,as.name("data <- read.csv(myfile, header=header, sep=sep, quote=quote,skip=skip)\n"),append=TRUE)
-        
+      script <- gsub(".Rmd", ".R",file)
+
+      cat(file = script, as.name("library(tidyverse)\n"))
+
+      inFile <- input$file1
+
+      if (is.null(inFile)) {
+
+        cat(file=script,as.name("data <- data.frame(variable=c(rep('Breed.A',20),rep('Breed.B',20)),value=c(20.77,9.08,9.8,8.13,16.54,11.36,11.47,12.1,14.04,16.82,6.32,17.51,9.87,12.41,7.39,9.23,4.06,8.26,10.24,14.64,15.51,12.93,11.5,16.07,15.51,17.66,11.25,13.65,14.28,13.21,10.28,12.41,9.63,14.75,9.81,13.02,12.33,11.9,8.98,11.29))\n"), append = TRUE)
+
+      } else {
+
+        cat(file = script, as.name(paste0('myfile <- \"' , inFile$name, '\"\n')), append = TRUE)
+        cat(file = script, as.name("data <- as.data.frame(read_csv(myfile))\n"), append = TRUE)
         
         if(!input$factors) cat(file=script,as.name("data <- reshape2::melt(data)\n"),append=TRUE)
         cat(file=script,as.name("colnames(data) <- c('variable','value')\n"),append=TRUE)
       }
+
       cat(file=script,as.name("head(data)\n"),append=TRUE)
-      cat(file=script,as.name("library(ggplot2)\n"),append=TRUE)
       cat(file=script,as.name("p <- ggplot(data, aes(x = variable,y=value,fill=variable)) + geom_boxplot() + coord_flip()\n"),append=TRUE)
       
       if(input$paired){
