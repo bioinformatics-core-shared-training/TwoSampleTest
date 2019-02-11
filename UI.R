@@ -1,6 +1,6 @@
 library(shiny)
 
-shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
+shinyUI(navbarPage("Explore the two sample t-test",id="nav",
                    
                    tabPanel("About",
                             sidebarLayout(
@@ -111,7 +111,7 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                            
                               ),
                               mainPanel(
-                                        h4("Two-sample test"),
+                                        h4("Two sample test"),
                                         verbatimTextOutput("ttest"),
                                         helpText("If you have chosen a Parametric test, the comparison of the calculated test-statistic to the reference distribution will be shown here"),
                                         plotOutput("tdist"),
