@@ -30,7 +30,7 @@ shinyUI(navbarPage("Explore the two-sample t-test",id="nav",
                                            checkboxInput('paired', 'Paired Samples?', FALSE),
                                            
                                            h2("Direction of comparison"),
-                                           radioButtons("testDirection", "What comparison do you want to make?",c("A vs B", "B vs A")),
+                                           radioButtons("testDirection", "What comparison do you want to make?",c("A vs B", "B vs A"), selected = "B vs A"),
                                            helpText("If A vs B is selected, the difference will be the first column minus the second. Selecting B vs A will compute the second column minus the first"),
                                            
                                            helpText("You can choose to transform the data prior to statistical testing"),
