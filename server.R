@@ -2,6 +2,7 @@ library(tidyverse)
 library(shiny)
 library(reshape2)
 library(gridExtra)
+library(DT)
 
 shinyServer(function(input, output){
   
@@ -27,7 +28,7 @@ shinyServer(function(input, output){
 
   transformedData <- reactive({
 
-		df <- data()
+    df <- data()
 
     if (input$transform != "none") {
       df <- switch(input$transform,
@@ -47,7 +48,7 @@ shinyServer(function(input, output){
     text
   })
 
-  output$mytable= renderDataTable({
+  output$mytable= DT::renderDataTable({
 
     df <- transformedData()
 
@@ -66,8 +67,8 @@ shinyServer(function(input, output){
       }
     
 
-    df
-  }
+    datatable(df, rownames = FALSE)
+  }, server = FALSE
   )
   
 
@@ -184,7 +185,7 @@ shinyServer(function(input, output){
     
   }
   )
-  
+
   output$boxplot.paired<- renderPlot({
     
     df <- transformedData()
@@ -215,6 +216,24 @@ shinyServer(function(input, output){
     var.test(df[,1],df[,2])
   })
 
+  sign.test <- function(A, B, twoSided = TRUE) {
+
+    npos <- sum(A > B)
+    nneg <- sum(A < B)
+    x <- min(npos, nneg)
+    n <- sum(A != B)
+
+    cat(paste("Number of +'s", npos,"\n"))
+    cat(paste("Number of -'s", nneg,"\n"))
+    cat(paste("Test statistic:", x,"\n"))
+
+    p <- round(pbinom(q = x, size = n, prob = 0.5) * 2, 3)
+
+    if (!twoSided) p <- p / 2
+
+    cat(paste("P-value using binomial distribution with", n, "trials and p=0.5:", p, "\n"))
+  }
+
   output$ttest <-renderPrint({
 
     df <- transformedData()
@@ -231,7 +250,11 @@ shinyServer(function(input, output){
       if (input$do.parametric) {
         t.test(A, B, alternative = alternative, paired = paired, var.equal = var.equal)
       } else {
-        wilcox.test(A, B, alternative = alternative, paired = paired, var.equal = var.equal)
+        print(wilcox.test(A, B, alternative = alternative, paired = paired, var.equal = var.equal))
+        if (paired) {
+          cat("\nAlternative to the Wilcoxon signed rank test that does not assume a symmetrical distribution\n\tSign test\n")
+          sign.test(A, B)
+        }
       }
 
     } else {
@@ -239,7 +262,11 @@ shinyServer(function(input, output){
       if (input$do.parametric) {
         t.test(B, A, alternative = alternative, paired = paired, var.equal = var.equal)
       } else {
-        wilcox.test(B, A, alternative = alternative, paired = paired, var.equal = var.equal)
+        print(wilcox.test(B, A, alternative = alternative, paired = paired, var.equal = var.equal))
+        if (paired) {
+          cat("\nAlternative to the Wilcoxon signed rank test that does not assume a symmetrical distribution\n\tSign test\n")
+          sign.test(B, A)
+        }
       }
     }
 
