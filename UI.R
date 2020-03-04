@@ -1,4 +1,5 @@
 library(shiny)
+library(DT)
 
 shinyUI(navbarPage("Explore the two sample t-test",id="nav",
                    
@@ -39,7 +40,7 @@ shinyUI(navbarPage("Explore the two sample t-test",id="nav",
                                            
                               )
                               ,
-                              mainPanel(verbatimTextOutput("testDirection"),dataTableOutput("mytable")
+                              mainPanel(verbatimTextOutput("testDirection"),DT::dataTableOutput("mytable")
                               )
                               
                             )
